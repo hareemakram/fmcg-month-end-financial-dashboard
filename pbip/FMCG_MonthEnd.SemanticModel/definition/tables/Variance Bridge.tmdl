@@ -1,0 +1,35 @@
+table 'Variance Bridge'
+	lineageTag: 35c6d5f7-fd38-5645-b0ed-7169a8069b6e
+
+	column Step
+		dataType: string
+		lineageTag: 682a8e71-12b0-5117-ac3e-c6c5a4dec224
+		summarizeBy: none
+		sourceColumn: Step
+		sortByColumn: 'Step Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Step Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3bb1a874-129a-5dba-a6fa-3aa419ee3e39
+		summarizeBy: none
+		sourceColumn: Step Order
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Variance Bridge' = m
+		mode: import
+		queryGroup: Helpers
+		source =
+				let
+				    // Disconnected helper table that drives the Budget -> Actual waterfall
+				    Source = #table(
+				        type table [Step = text, #"Step Order" = Int64.Type],
+				        {{"Budget", 1}, {"Volume & Mix", 2}, {"Price & Discount", 3}})
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

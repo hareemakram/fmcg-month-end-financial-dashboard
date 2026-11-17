@@ -1,0 +1,7 @@
+/// Folder that holds the CSV files (must end with a backslash). Change it via Transform data > Edit parameters.
+expression DataFolder = "C:\FMCG-MonthEnd\data\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: 8a7e283d-2fec-5f90-a963-6035bd1d93b5
+	queryGroup: Parameters
+
+	annotation PBI_ResultType = Text
+

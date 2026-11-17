@@ -1,0 +1,144 @@
+table Product
+	lineageTag: 7f5d089a-0922-5797-bf8a-b73caafb8252
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7570ebaf-7b88-5994-9072-35cd681a0d78
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column SKU
+		dataType: string
+		lineageTag: 2994f0d1-bf94-586b-9dba-b17d28d0dd8c
+		summarizeBy: none
+		sourceColumn: SKU
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 3e30e52e-ab63-5382-9779-190f13119824
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Brand
+		dataType: string
+		lineageTag: cda7735a-2e25-5e83-939f-0b35eb844a8d
+		summarizeBy: none
+		sourceColumn: Brand
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 923b162a-95a2-5371-a093-aed0382d1aeb
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Segment
+		dataType: string
+		lineageTag: 839dc6d7-a28c-570d-a454-41619e88d073
+		summarizeBy: none
+		sourceColumn: Segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Pack Type'
+		dataType: string
+		lineageTag: 50f9be50-bc15-589e-9308-e2d174a33f62
+		summarizeBy: none
+		sourceColumn: Pack Type
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'List Price'
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 2fa0b3a9-f771-5c58-b7ec-a8542b3ce48a
+		summarizeBy: none
+		sourceColumn: List Price
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Standard Cost'
+		dataType: double
+		formatString: \$#,0.00
+		lineageTag: 8aa0c41f-da5b-59b0-b1d7-5faa3dc34982
+		summarizeBy: none
+		sourceColumn: Standard Cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Launch Date'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: ebad8159-e6a9-54d1-9b56-79e84bb59f33
+		summarizeBy: none
+		sourceColumn: Launch Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Price Band'
+		dataType: string
+		lineageTag: d778bb53-d243-579e-b104-49ea92ebaf21
+		summarizeBy: none
+		sourceColumn: Price Band
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Standard Margin %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: a6c1d828-c76b-51b5-8304-7db0e3ea7971
+		summarizeBy: none
+		sourceColumn: Standard Margin %
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy 'Product Hierarchy'
+		lineageTag: a2b23c96-ea13-5880-a8b0-dbe44a2d483c
+
+		level Category
+			lineageTag: ae77ea96-4279-53f6-81c3-6dc3fc02949e
+			column: Category
+
+		level Brand
+			lineageTag: e55b29b1-94e7-51e1-9bd0-bc7ad94dba6d
+			column: Brand
+
+		level Product
+			lineageTag: f8787959-7539-5771-8cc8-77bae2335a66
+			column: Product
+
+	partition Product = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dim_product.csv"), [Delimiter = ",", Columns = 10, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {
+				        {"ProductKey", Int64.Type}, {"SKU", type text}, {"ProductName", type text}, {"Brand", type text},
+				        {"Category", type text}, {"Segment", type text}, {"PackType", type text},
+				        {"UnitListPrice", type number}, {"UnitCost", type number}, {"LaunchDate", type date}}, "en-US"),
+				    Renamed = Table.RenameColumns(ChangedType, {
+				        {"ProductName", "Product"}, {"PackType", "Pack Type"}, {"UnitListPrice", "List Price"},
+				        {"UnitCost", "Standard Cost"}, {"LaunchDate", "Launch Date"}}),
+				    AddPriceBand = Table.AddColumn(Renamed, "Price Band", each
+				        if [List Price] < 2 then "Under $2"
+				        else if [List Price] < 5 then "$2 - $5"
+				        else if [List Price] < 10 then "$5 - $10"
+				        else "$10+", type text),
+				    AddStdMargin = Table.AddColumn(AddPriceBand, "Standard Margin %", each 1 - [Standard Cost] / [List Price], Percentage.Type)
+				in
+				    AddStdMargin
+
+	annotation PBI_ResultType = Table

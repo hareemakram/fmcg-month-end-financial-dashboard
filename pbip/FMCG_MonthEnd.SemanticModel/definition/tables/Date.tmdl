@@ -1,0 +1,260 @@
+table 'Date'
+	dataCategory: Time
+	lineageTag: 8ca94743-1ec8-56ec-b3f5-88bc8016f90a
+
+	column 'Date'
+		dataType: dateTime
+		isKey
+		formatString: dd mmm yyyy
+		lineageTag: 705a9357-c8ca-563a-bdd0-19384e553235
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: 06510e86-d18a-5bac-9a4f-e10888dafa80
+		summarizeBy: none
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Quarter No'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: fae43853-f801-5b15-861e-dc8ff7139d27
+		summarizeBy: none
+		sourceColumn: Quarter No
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quarter
+		dataType: string
+		lineageTag: a73779a2-fe86-522c-8250-bccef36c5fb3
+		summarizeBy: none
+		sourceColumn: Quarter
+		sortByColumn: 'Quarter No'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Year Quarter'
+		dataType: string
+		lineageTag: 170c2e8d-85e9-543d-acd2-2c67322f679f
+		summarizeBy: none
+		sourceColumn: Year Quarter
+		sortByColumn: 'Year Quarter Key'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Year Quarter Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6692370e-7af4-527d-8a3e-e79f9f35494c
+		summarizeBy: none
+		sourceColumn: Year Quarter Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month No'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5beee471-3f7e-5f79-9955-387d88b95441
+		summarizeBy: none
+		sourceColumn: Month No
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: 3222a658-0e6c-57ee-8a30-35ff6f5032db
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: 'Month No'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Name'
+		dataType: string
+		lineageTag: d2db931e-52e3-5335-a0c4-66ab004bcd80
+		summarizeBy: none
+		sourceColumn: Month Name
+		sortByColumn: 'Month No'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Year'
+		dataType: string
+		lineageTag: 9b9875a0-00df-5183-ae9d-9b22812f473e
+		summarizeBy: none
+		sourceColumn: Month Year
+		sortByColumn: 'Year Month Key'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Year Month Key'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 707b9a1a-c2f5-558c-bf0b-9c93bba8b615
+		summarizeBy: none
+		sourceColumn: Year Month Key
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Start'
+		dataType: dateTime
+		formatString: mmm yyyy
+		lineageTag: 11a40ac4-7f05-5572-bece-f0909e60a2ab
+		summarizeBy: none
+		sourceColumn: Month Start
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month End'
+		dataType: dateTime
+		formatString: dd mmm yyyy
+		lineageTag: 1010517c-a587-546d-b3b2-59b2afb8d8b4
+		summarizeBy: none
+		sourceColumn: Month End
+
+		annotation SummarizationSetBy = Automatic
+
+	column Half
+		dataType: string
+		lineageTag: e3953cd8-90c3-58ec-b21f-86a2c1a89d43
+		summarizeBy: none
+		sourceColumn: Half
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 07c5710b-2d31-5ccb-bea0-1b5e2610a47b
+		summarizeBy: none
+		sourceColumn: Day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Weekday No'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 816f92e2-961c-517c-949e-9cb193bfc7df
+		summarizeBy: none
+		sourceColumn: Weekday No
+
+		annotation SummarizationSetBy = Automatic
+
+	column Weekday
+		dataType: string
+		lineageTag: 511fad08-a12f-5ba7-9871-3e7230676f74
+		summarizeBy: none
+		sourceColumn: Weekday
+		sortByColumn: 'Weekday No'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week of Year'
+		dataType: int64
+		formatString: 0
+		lineageTag: 4b08ad09-da02-5657-9f4b-672daa60c13c
+		summarizeBy: none
+		sourceColumn: Week of Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Weekend'
+		dataType: boolean
+		lineageTag: c571d327-adc5-5322-b8e8-f074b7f33f00
+		summarizeBy: none
+		sourceColumn: Is Weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	/// TRUE for every date up to the end of the latest month that has actuals (the last closed month).
+	column 'Is Actual Period' = 'Date'[Date] <= EOMONTH ( MAX ( 'Fact Sales'[OrderDate] ), 0 )
+		dataType: boolean
+		lineageTag: 26394d76-f27d-57a0-8b58-f73e90fbcf32
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 0 = last closed month, -1 = the month before, +1 = first forecast-only month. Drives the rolling-window visual filters.
+	column 'Month Offset' =
+			VAR _last = EOMONTH ( MAX ( 'Fact Sales'[OrderDate] ), 0 )
+			RETURN
+			    ( 'Date'[Year] * 12 + 'Date'[Month No] ) - ( YEAR ( _last ) * 12 + MONTH ( _last ) )
+		dataType: int64
+		formatString: 0
+		lineageTag: b5e5b49d-42cb-5867-866e-5e6a4f875627
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 0 = the year of the last closed month, -1 = prior year.
+	column 'Year Offset' = 'Date'[Year] - YEAR ( MAX ( 'Fact Sales'[OrderDate] ) )
+		dataType: int64
+		formatString: 0
+		lineageTag: 67ef1819-599c-5a37-9df0-a8b0e58aa620
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy Calendar
+		lineageTag: 829086f7-6944-570d-9339-f605ff6c2fa2
+
+		level Year
+			lineageTag: 72c6877d-cb7e-5bed-bc0f-16b50a3303f8
+			column: Year
+
+		level Quarter
+			lineageTag: d3950757-6889-5e8e-a343-79a7d081ab51
+			column: Quarter
+
+		level Month
+			lineageTag: 680de8c4-2c3d-5d7a-8ded-87c5935027e8
+			column: Month
+
+		level 'Date'
+			lineageTag: 3387aa8d-fd1b-576e-82cb-767c593615b7
+			column: 'Date'
+
+	partition 'Date' = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    // Calendar covering every actual, forecast and budget period
+				    StartDate = #date(2024, 1, 1),
+				    EndDate = #date(2026, 12, 31),
+				    DayCount = Duration.Days(EndDate - StartDate) + 1,
+				    Dates = List.Dates(StartDate, DayCount, #duration(1, 0, 0, 0)),
+				    AsTable = Table.FromList(Dates, Splitter.SplitByNothing(), type table [Date = date]),
+				    AddYear = Table.AddColumn(AsTable, "Year", each Date.Year([Date]), Int64.Type),
+				    AddQuarterNo = Table.AddColumn(AddYear, "Quarter No", each Date.QuarterOfYear([Date]), Int64.Type),
+				    AddQuarter = Table.AddColumn(AddQuarterNo, "Quarter", each "Q" & Text.From([Quarter No]), type text),
+				    AddYearQuarter = Table.AddColumn(AddQuarter, "Year Quarter", each Text.From([Year]) & " Q" & Text.From([Quarter No]), type text),
+				    AddYearQuarterKey = Table.AddColumn(AddYearQuarter, "Year Quarter Key", each [Year] * 10 + [Quarter No], Int64.Type),
+				    AddMonthNo = Table.AddColumn(AddYearQuarterKey, "Month No", each Date.Month([Date]), Int64.Type),
+				    AddMonth = Table.AddColumn(AddMonthNo, "Month", each Date.ToText([Date], "MMM", "en-US"), type text),
+				    AddMonthName = Table.AddColumn(AddMonth, "Month Name", each Date.ToText([Date], "MMMM", "en-US"), type text),
+				    AddMonthYear = Table.AddColumn(AddMonthName, "Month Year", each Date.ToText([Date], "MMM yyyy", "en-US"), type text),
+				    AddYearMonthKey = Table.AddColumn(AddMonthYear, "Year Month Key", each [Year] * 100 + [Month No], Int64.Type),
+				    AddMonthStart = Table.AddColumn(AddYearMonthKey, "Month Start", each Date.StartOfMonth([Date]), type date),
+				    AddMonthEnd = Table.AddColumn(AddMonthStart, "Month End", each Date.EndOfMonth([Date]), type date),
+				    AddHalf = Table.AddColumn(AddMonthEnd, "Half", each if [Month No] <= 6 then "H1" else "H2", type text),
+				    AddDay = Table.AddColumn(AddHalf, "Day", each Date.Day([Date]), Int64.Type),
+				    AddWeekdayNo = Table.AddColumn(AddDay, "Weekday No", each Date.DayOfWeek([Date], Day.Monday) + 1, Int64.Type),
+				    AddWeekday = Table.AddColumn(AddWeekdayNo, "Weekday", each Date.ToText([Date], "ddd", "en-US"), type text),
+				    AddWeekOfYear = Table.AddColumn(AddWeekday, "Week of Year", each Date.WeekOfYear([Date], Day.Monday), Int64.Type),
+				    AddIsWeekend = Table.AddColumn(AddWeekOfYear, "Is Weekend", each [Weekday No] >= 6, type logical)
+				in
+				    AddIsWeekend
+
+	annotation PBI_ResultType = Table

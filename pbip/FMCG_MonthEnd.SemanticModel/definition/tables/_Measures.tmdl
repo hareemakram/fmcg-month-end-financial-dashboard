@@ -1,0 +1,1751 @@
+table _Measures
+	lineageTag: 0eb74608-9f04-50ff-8ba6-a2f6eb8d8cd0
+
+	/// Invoice value at list price, before trade discounts.
+	measure 'Gross Sales' = SUM ( 'Fact Sales'[GrossSales] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 01 Actuals
+		lineageTag: 5256d5ef-dfa3-555f-a5ed-b0b9454d84c3
+
+	/// Trade and promotional discounts.
+	measure Discounts = SUM ( 'Fact Sales'[DiscountAmount] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 01 Actuals
+		lineageTag: e1cc1ca8-d047-5b24-b4bd-d7de9976ffce
+
+	/// Gross sales less discounts. The headline revenue measure.
+	measure 'Net Sales' = SUM ( 'Fact Sales'[NetSales] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 01 Actuals
+		lineageTag: ec764498-2da1-5f20-a0f5-37230a3cde23
+
+	/// Cost of goods sold at standard cost.
+	measure COGS = SUM ( 'Fact Sales'[COGS] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 01 Actuals
+		lineageTag: cdedf455-20c4-5881-bb08-ea38563ee4fa
+
+	/// Net sales less COGS.
+	measure 'Gross Margin' = [Net Sales] - [COGS]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 01 Actuals
+		lineageTag: e8c2c531-affa-571f-9fd3-afa276d6a497
+
+	/// Gross margin as a share of net sales.
+	measure 'Gross Margin %' = DIVIDE ( [Gross Margin], [Net Sales] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 Actuals
+		lineageTag: d2f22166-a848-5657-acc3-3119577335f7
+
+	/// Units invoiced.
+	measure 'Units Sold' = SUM ( 'Fact Sales'[Units] )
+		formatString: #,0
+		displayFolder: 01 Actuals
+		lineageTag: a53a4558-9c4b-5a65-8062-c4b43165e3b2
+
+	/// Discounts as a share of gross sales.
+	measure 'Discount %' = DIVIDE ( [Discounts], [Gross Sales] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 01 Actuals
+		lineageTag: cc715d58-c0c6-5d9a-b313-d0642cb76072
+
+	/// Net sales per unit.
+	measure 'Avg Net Price' = DIVIDE ( [Net Sales], [Units Sold] )
+		formatString: \$#,0.00
+		displayFolder: 01 Actuals
+		lineageTag: c68f5666-a772-50a2-8398-14ff2ada22b9
+
+	/// Number of distinct sales orders.
+	measure Orders = DISTINCTCOUNT ( 'Fact Sales'[OrderNumber] )
+		formatString: #,0
+		displayFolder: 01 Actuals
+		lineageTag: 2309ba25-af1f-5074-b3d1-5bf9582c95b6
+
+	/// Net sales per order.
+	measure 'Avg Order Value' = DIVIDE ( [Net Sales], [Orders] )
+		formatString: \$#,0
+		displayFolder: 01 Actuals
+		lineageTag: 811567e8-b76c-552e-849d-e4872ea62a5a
+
+	/// Customers with at least one invoice in context.
+	measure 'Active Customers' = DISTINCTCOUNT ( 'Fact Sales'[CustomerKey] )
+		formatString: #,0
+		displayFolder: 01 Actuals
+		lineageTag: d9bd7e99-1b6c-5b45-b801-1d0012e3b308
+
+	/// SKUs with at least one invoice in context.
+	measure 'Active SKUs' = DISTINCTCOUNT ( 'Fact Sales'[ProductKey] )
+		formatString: #,0
+		displayFolder: 01 Actuals
+		lineageTag: f87fc3d5-7a7e-5ddd-bfaa-26794b566a65
+
+	/// Latest rolling forecast of net sales (all periods, including future months).
+	measure 'Forecast Net Sales' = SUM ( 'Fact Forecast'[ForecastNetSales] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: eb9d698f-9f01-5eb4-9907-01157c996b31
+
+	/// Latest rolling forecast of units.
+	measure 'Forecast Units' = SUM ( 'Fact Forecast'[ForecastUnits] )
+		formatString: #,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: ad437760-3cf8-5c2d-a8a3-d8ec69dba5c3
+
+	/// Forecast cost of goods sold.
+	measure 'Forecast COGS' = SUM ( 'Fact Forecast'[ForecastCOGS] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: f9a82b47-4145-58bc-9952-4273e39a577d
+
+	/// Forecast net sales less forecast COGS.
+	measure 'Forecast Gross Margin' = [Forecast Net Sales] - [Forecast COGS]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 571169cd-c817-5a12-863e-7e18a5532807
+
+	/// Forecast gross margin %.
+	measure 'Forecast Gross Margin %' = DIVIDE ( [Forecast Gross Margin], [Forecast Net Sales] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 3a76341d-0951-589a-a7bc-c911a64a123a
+
+	/// Annual operating plan (budget) net sales.
+	measure 'Budget Net Sales' = SUM ( 'Fact Forecast'[BudgetNetSales] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 985644a7-0926-5104-9b0c-a0972606119d
+
+	/// Budget units.
+	measure 'Budget Units' = SUM ( 'Fact Forecast'[BudgetUnits] )
+		formatString: #,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 24a5142b-c491-5688-a702-b8c27e028ec2
+
+	/// Budget cost of goods sold.
+	measure 'Budget COGS' = SUM ( 'Fact Forecast'[BudgetCOGS] )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 76fb3974-c977-5390-9b39-ef418e0fb102
+
+	/// Budget net sales less budget COGS.
+	measure 'Budget Gross Margin' = [Budget Net Sales] - [Budget COGS]
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: d95e574c-4cf0-5b45-b5c1-57ba576d81e5
+
+	/// Budget gross margin %.
+	measure 'Budget Gross Margin %' = DIVIDE ( [Budget Gross Margin], [Budget Net Sales] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 4199581a-1def-5f74-be43-d719ae18561f
+
+	/// Forecast Net Sales restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Forecast Net Sales (Closed)' = CALCULATE ( [Forecast Net Sales], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 76d26940-1fbc-5775-a1a9-834745b7734c
+
+	/// Forecast Units restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Forecast Units (Closed)' = CALCULATE ( [Forecast Units], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: #,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 50394649-8027-5143-a4a3-9ce132df4053
+
+	/// Forecast Gross Margin restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Forecast Gross Margin (Closed)' = CALCULATE ( [Forecast Gross Margin], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 37e33840-c165-5a0c-83fe-ecaec23a1e10
+
+	/// Budget Net Sales restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Budget Net Sales (Closed)' = CALCULATE ( [Budget Net Sales], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: ffda1bac-7067-5a26-a3b7-11a6388cf7a4
+
+	/// Budget Units restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Budget Units (Closed)' = CALCULATE ( [Budget Units], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: #,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: 97da0c81-30d8-5bba-bb2d-88801c1a6e42
+
+	/// Budget Gross Margin restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+	measure 'Budget Gross Margin (Closed)' = CALCULATE ( [Budget Gross Margin], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 02 Forecast & Budget
+		lineageTag: c0c10cdb-888d-54a1-8c70-45c3c8176db3
+
+	/// Budget GM % for closed periods.
+	measure 'Budget Gross Margin % (Closed)' = DIVIDE ( [Budget Gross Margin (Closed)], [Budget Net Sales (Closed)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 02 Forecast & Budget
+		lineageTag: e234aa8e-bb14-5baa-9cd8-cfbcf97cd773
+
+	/// Actual net sales minus forecast (closed periods). Positive = favourable.
+	measure 'Var vs Forecast' =
+			VAR _act = [Net Sales]
+			VAR _fc = [Forecast Net Sales (Closed)]
+			RETURN
+			    IF ( NOT ISBLANK ( _act ) || NOT ISBLANK ( _fc ), _act - _fc )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 03 Variance
+		lineageTag: b1c432c3-0036-58b6-952a-b781a7f83057
+
+	/// Variance to forecast as a % of forecast.
+	measure 'Var % vs Forecast' = DIVIDE ( [Var vs Forecast], [Forecast Net Sales (Closed)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 03 Variance
+		lineageTag: 8e661a8d-fa59-5747-afd2-5fae6c208a66
+
+	/// Actual net sales minus budget (closed periods). Positive = favourable.
+	measure 'Var vs Budget' =
+			VAR _act = [Net Sales]
+			VAR _bud = [Budget Net Sales (Closed)]
+			RETURN
+			    IF ( NOT ISBLANK ( _act ) || NOT ISBLANK ( _bud ), _act - _bud )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 03 Variance
+		lineageTag: 81c22842-221d-5b25-a87c-ccf15b70c9a6
+
+	/// Variance to budget as a % of budget.
+	measure 'Var % vs Budget' = DIVIDE ( [Var vs Budget], [Budget Net Sales (Closed)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 03 Variance
+		lineageTag: 1876e9cd-a069-5774-817b-ca965caf1a8d
+
+	/// Units sold minus forecast units.
+	measure 'Units Var vs Forecast' = IF ( NOT ISBLANK ( [Units Sold] ), [Units Sold] - [Forecast Units (Closed)] )
+		formatString: +#,0;-#,0;0
+		displayFolder: 03 Variance
+		lineageTag: 1fd288a3-addd-5fac-8aed-76a6c764d0a0
+
+	/// Unit variance to forecast as a %.
+	measure 'Units Var % vs Forecast' = DIVIDE ( [Units Var vs Forecast], [Forecast Units (Closed)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 03 Variance
+		lineageTag: 46c7df7f-c78c-5abb-bf7b-1d94e98c3e41
+
+	/// Gross margin minus budget gross margin.
+	measure 'GM Var vs Budget' = IF ( NOT ISBLANK ( [Net Sales] ), [Gross Margin] - [Budget Gross Margin (Closed)] )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 03 Variance
+		lineageTag: 62813e92-5a59-5761-971f-53136bb3e13e
+
+	/// Gross margin % minus budget GM % (percentage points).
+	measure 'GM % pts vs Budget' = IF ( NOT ISBLANK ( [Net Sales] ), [Gross Margin %] - [Budget Gross Margin % (Closed)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 03 Variance
+		lineageTag: bb7b4a89-05a8-563f-bf12-08cbffa9d601
+
+	/// Part of the budget variance explained by units (SKU x month grain): (actual units - budget units) x budget price. Includes SKU mix.
+	measure 'Volume & Mix Effect vs Budget' =
+			VAR _grid =
+			    ADDCOLUMNS (
+			        CROSSJOIN (
+			            CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+			            VALUES ( 'Product'[ProductKey] )
+			        ),
+			        "@ua", [Units Sold],
+			        "@na", [Net Sales],
+			        "@ub", [Budget Units],
+			        "@nb", [Budget Net Sales]
+			    )
+			RETURN
+			    SUMX (
+			        _grid,
+			        IF ( [@ub] = 0, [@na] - [@nb], ( [@ua] - [@ub] ) * DIVIDE ( [@nb], [@ub] ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 03 Variance
+		lineageTag: e1c418db-1605-5b3d-a156-628e019a18e5
+
+	/// Part of the budget variance explained by realised net price (list price changes and discount depth). Volume + Price = total variance.
+	measure 'Price & Discount Effect vs Budget' = [Var vs Budget] - [Volume & Mix Effect vs Budget]
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 03 Variance
+		lineageTag: 801a2ed3-3eb5-5359-a212-f7ccb7c4642b
+
+	/// Feeds the Budget -> Actual waterfall. The waterfall total equals actual net sales.
+	measure 'Bridge Value' =
+			SWITCH (
+			    SELECTEDVALUE ( 'Variance Bridge'[Step] ),
+			    "Budget", [Budget Net Sales (Closed)],
+			    "Volume & Mix", [Volume & Mix Effect vs Budget],
+			    "Price & Discount", [Price & Discount Effect vs Budget]
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 03 Variance
+		lineageTag: 2de7bbe2-dfa9-5018-bb30-72994f182f43
+
+	/// Target forecast accuracy (1 - WMAPE).
+	measure 'Forecast Accuracy Target' = 0.90
+		formatString: 0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 2af28ad5-72a7-544f-afb1-176d93a67d23
+
+	/// Sum of absolute forecast errors at SKU x Region x Month grain (errors don't cancel out across SKUs).
+	measure 'Forecast Abs Error' =
+			VAR _grid =
+			    CROSSJOIN (
+			        CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+			        VALUES ( 'Product'[ProductKey] ),
+			        VALUES ( 'Region'[RegionKey] )
+			    )
+			RETURN
+			    SUMX ( _grid, ABS ( [Net Sales] - [Forecast Net Sales] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 7e10c8ea-e55b-5d1e-828f-66f0f58f3f7f
+
+	/// Weighted mean absolute percentage error = sum |actual - forecast| / sum actual.
+	measure 'WMAPE %' = DIVIDE ( [Forecast Abs Error], [Net Sales] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 53f2b29e-8b1e-502e-83fb-d5a763069959
+
+	/// 1 - WMAPE, floored at 0. The standard demand-planning accuracy KPI.
+	measure 'Forecast Accuracy %' = IF ( NOT ISBLANK ( [Net Sales] ), MAX ( 0, 1 - [WMAPE %] ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: a7c4cd8e-7c01-515e-8d91-d6885e793538
+
+	/// Unweighted mean absolute percentage error across SKU x Month cells (every SKU counts equally).
+	measure 'MAPE %' =
+			VAR _grid =
+			    ADDCOLUMNS (
+			        CROSSJOIN (
+			            CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+			            VALUES ( 'Product'[ProductKey] )
+			        ),
+			        "@a", [Net Sales],
+			        "@f", [Forecast Net Sales]
+			    )
+			RETURN
+			    AVERAGEX ( FILTER ( _grid, [@a] > 0 ), ABS ( [@a] - [@f] ) / [@a] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 6dbb6782-b4c7-5d39-84a4-d8abc17611b2
+
+	/// Positive = over-forecasting, negative = under-forecasting.
+	measure 'Forecast Bias %' = DIVIDE ( [Forecast Net Sales (Closed)] - [Net Sales], [Net Sales] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 62f5cf22-8d23-5fa5-940c-4cf081775422
+
+	/// Forecast accuracy minus target, in percentage points.
+	measure 'Accuracy vs Target (pts)' = IF ( NOT ISBLANK ( [Forecast Accuracy %] ), [Forecast Accuracy %] - [Forecast Accuracy Target] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: e81079cc-ed45-5761-bf49-7a97c3bb3d46
+
+	/// Month-end of the latest month with actuals, regardless of filters.
+	measure 'Last Actual Date' = EOMONTH ( CALCULATE ( MAX ( 'Fact Sales'[OrderDate] ), REMOVEFILTERS () ), 0 )
+		formatString: dd mmm yyyy
+		displayFolder: 05 Reporting Period
+		lineageTag: 5a65de50-8e5b-589e-99aa-c1e50ab4ea49
+
+	/// The as-of date for every (Month)/(QTD)/(YTD) measure: the end of the selected period, capped at the last closed month. With no date selection it is the last closed month.
+	measure 'Reporting Date' =
+			VAR _last = [Last Actual Date]
+			VAR _minCtx = MIN ( 'Date'[Date] )
+			VAR _maxCtx = MAX ( 'Date'[Date] )
+			RETURN
+			    IF ( _minCtx <= _last, MIN ( _maxCtx, _last ) )
+		formatString: dd mmm yyyy
+		displayFolder: 05 Reporting Period
+		lineageTag: cee7ceb4-4df8-5da4-8169-acb002edbb70
+
+	/// [Net Sales] for the reporting month.
+	measure 'Net Sales (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: ef43c0ff-19f6-5a49-87db-9b85a5edab41
+
+	/// [Net Sales] for the month before the reporting month.
+	measure 'Net Sales (Prior Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -2 ) + 1, EOMONTH ( _rd, -1 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 6ba63185-4490-5a76-94be-e2c97364ebe0
+
+	/// [Net Sales] for the same month last year.
+	measure 'Net Sales (PY Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 6da944bd-2d24-501d-9495-fe6d66ed2e98
+
+	/// [Net Sales] for quarter-to-date through the reporting month.
+	measure 'Net Sales (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 634f9a96-7349-5a71-8c89-3cfe0046921f
+
+	/// [Net Sales] for the equivalent quarter-to-date one quarter earlier.
+	measure 'Net Sales (Prior QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( EOMONTH ( _rd, -3 ) ), QUARTER ( EOMONTH ( _rd, -3 ) ) * 3 - 2, 1 ), EOMONTH ( _rd, -3 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 580ee8b4-8d85-5539-853b-726a30ef987f
+
+	/// [Net Sales] for the same quarter-to-date last year.
+	measure 'Net Sales (PY QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, QUARTER ( _rd ) * 3 - 2, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: fd4659a1-5358-50a7-93a8-7fa8e04ed082
+
+	/// [Net Sales] for year-to-date through the reporting month.
+	measure 'Net Sales (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 917bb031-c145-5eb0-ba9c-3b2ae34427d0
+
+	/// [Net Sales] for the same year-to-date period last year.
+	measure 'Net Sales (PY YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: e9d3d40a-aac2-5bf6-9336-6d319d571287
+
+	/// [Net Sales] for the rolling 12 months ending with the reporting month.
+	measure 'Net Sales (R12M)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -12 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 01b56e45-e65e-5ffd-8dd6-ceb554c6f48d
+
+	/// [Net Sales] for the rolling 12 months one year earlier.
+	measure 'Net Sales (PY R12M)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -24 ) + 1, EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 340a2a49-be27-5c23-b070-9f155c3b7c48
+
+	/// [Gross Margin] for the reporting month.
+	measure 'Gross Margin (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 5937d4d0-6560-5b82-8c83-50174af76044
+
+	/// [Gross Margin %] for the reporting month.
+	measure 'Gross Margin % (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: ac1793f2-f146-55cc-af20-6e55981d773a
+
+	/// [Gross Margin] for the same month last year.
+	measure 'Gross Margin (PY Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 9f8f2d2e-c3b0-5d8b-8038-1c2c014c026f
+
+	/// [Gross Margin %] for the same month last year.
+	measure 'Gross Margin % (PY Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 32c1366c-bf18-5c46-8638-3b3ed6bbf285
+
+	/// [Gross Margin] for quarter-to-date through the reporting month.
+	measure 'Gross Margin (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 293e4487-be94-5974-bf54-4eb32ec8aaa4
+
+	/// [Gross Margin %] for quarter-to-date through the reporting month.
+	measure 'Gross Margin % (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 0c295607-9aef-5e9f-908b-aef8d42bdf36
+
+	/// [Gross Margin] for year-to-date through the reporting month.
+	measure 'Gross Margin (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: e904bbc5-ca36-53c5-8d20-4e38144a2313
+
+	/// [Gross Margin %] for year-to-date through the reporting month.
+	measure 'Gross Margin % (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: ded27f7b-4e75-537a-896f-6bfbf5e25e2d
+
+	/// [Gross Margin] for the same year-to-date period last year.
+	measure 'Gross Margin (PY YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 3285337e-e3ca-5b62-984d-33e76f15417b
+
+	/// [Gross Margin %] for the same year-to-date period last year.
+	measure 'Gross Margin % (PY YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 9b26e9ec-c370-5d55-8159-1d984a039925
+
+	/// [Units Sold] for the reporting month.
+	measure 'Units Sold (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: #,0
+		displayFolder: 05 Reporting Period
+		lineageTag: cf722335-032f-590d-a538-4cf4c8d2c657
+
+	/// [Discount %] for the reporting month.
+	measure 'Discount % (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: c2dbee1c-1ed1-50dc-8eb6-88af5676a924
+
+	/// [Units Sold] for year-to-date through the reporting month.
+	measure 'Units Sold (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: #,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 6a5e1d6c-f33a-5382-aecb-660071694461
+
+	/// [Discount %] for year-to-date through the reporting month.
+	measure 'Discount % (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 7e0f6efd-0c19-53d2-a0bf-3e6b0316897b
+
+	/// [Units Sold] for the same year-to-date period last year.
+	measure 'Units Sold (PY YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: #,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 4aad1f59-960c-500e-8b18-50701bcc2913
+
+	/// [Discount %] for the same year-to-date period last year.
+	measure 'Discount % (PY YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 5ae85e5d-162a-53c3-86f8-0a956f5f9a91
+
+	/// [Forecast Net Sales (Closed)] for the reporting month.
+	measure 'Forecast Net Sales (Closed) (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: e6527ae2-346a-59aa-a06d-6d3199d286b0
+
+	/// [Budget Net Sales (Closed)] for the reporting month.
+	measure 'Budget Net Sales (Closed) (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: a8baf144-887a-5f35-9e69-d67ea1e74091
+
+	/// [Var vs Forecast] for the reporting month.
+	measure 'Var vs Forecast (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 03327623-8717-5ef2-81f8-5562d9374e7b
+
+	/// [Var % vs Forecast] for the reporting month.
+	measure 'Var % vs Forecast (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: a86e6745-1c84-57c3-8372-76b6af6b184e
+
+	/// [Var vs Budget] for the reporting month.
+	measure 'Var vs Budget (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 87a4f666-baad-503f-ad4b-c0654f5891e8
+
+	/// [Var % vs Budget] for the reporting month.
+	measure 'Var % vs Budget (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: e6b0c127-0800-524c-b1a1-7fabe7a9abed
+
+	/// [Forecast Accuracy %] for the reporting month.
+	measure 'Forecast Accuracy % (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 42a33650-c5f8-5f45-8b76-939e4409cd09
+
+	/// [Forecast Bias %] for the reporting month.
+	measure 'Forecast Bias % (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: c3a7b4ea-7e8d-5412-85b3-4bdc4df44f70
+
+	/// [GM % pts vs Budget] for the reporting month.
+	measure 'GM % pts vs Budget (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 7ae9a52a-d20c-5884-bc30-667a26ddff6b
+
+	/// [Forecast Net Sales (Closed)] for quarter-to-date through the reporting month.
+	measure 'Forecast Net Sales (Closed) (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 1ad39aaf-3cfe-555d-98fd-d7214e968499
+
+	/// [Budget Net Sales (Closed)] for quarter-to-date through the reporting month.
+	measure 'Budget Net Sales (Closed) (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 72c4ad8e-8f5a-5b18-bb6e-babbd9802477
+
+	/// [Var vs Forecast] for quarter-to-date through the reporting month.
+	measure 'Var vs Forecast (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 5416f1ce-3935-5056-a53f-9b5a44d6ec17
+
+	/// [Var % vs Forecast] for quarter-to-date through the reporting month.
+	measure 'Var % vs Forecast (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: dc661555-f2df-514c-97f9-b7dfb9bab8f4
+
+	/// [Var vs Budget] for quarter-to-date through the reporting month.
+	measure 'Var vs Budget (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 9970d2b9-6fd5-5d45-a932-3b91813d2780
+
+	/// [Var % vs Budget] for quarter-to-date through the reporting month.
+	measure 'Var % vs Budget (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: ed173ab6-38d3-55f4-aeed-78bb3c497347
+
+	/// [Forecast Accuracy %] for quarter-to-date through the reporting month.
+	measure 'Forecast Accuracy % (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 56355ec1-fbdc-520f-a81e-df416a2abd6d
+
+	/// [Forecast Bias %] for quarter-to-date through the reporting month.
+	measure 'Forecast Bias % (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 960c72ec-4223-58af-a946-05f937121efc
+
+	/// [GM % pts vs Budget] for quarter-to-date through the reporting month.
+	measure 'GM % pts vs Budget (QTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 4a0d8a8b-5cd7-5243-a59b-3b7cef07c825
+
+	/// [Forecast Net Sales (Closed)] for year-to-date through the reporting month.
+	measure 'Forecast Net Sales (Closed) (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 1ae17dd1-89cf-5132-b574-c2e50e577aaf
+
+	/// [Budget Net Sales (Closed)] for year-to-date through the reporting month.
+	measure 'Budget Net Sales (Closed) (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: ea99b8e3-4a8f-5ac6-8c39-3ba7e7eb0922
+
+	/// [Var vs Forecast] for year-to-date through the reporting month.
+	measure 'Var vs Forecast (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 950811f8-6528-5ccb-b7c3-8c8b33da702d
+
+	/// [Var % vs Forecast] for year-to-date through the reporting month.
+	measure 'Var % vs Forecast (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 6047b492-1f1f-5cca-ae25-c2898ff3ad14
+
+	/// [Var vs Budget] for year-to-date through the reporting month.
+	measure 'Var vs Budget (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: baa88d47-e9d7-5738-89b7-d1677a5a1b71
+
+	/// [Var % vs Budget] for year-to-date through the reporting month.
+	measure 'Var % vs Budget (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 764a1eb5-4ae9-5b2c-b0b0-1c2fae3da449
+
+	/// [Forecast Accuracy %] for year-to-date through the reporting month.
+	measure 'Forecast Accuracy % (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 73085945-c4a0-5a64-8367-d2b07fc4fcb9
+
+	/// [Forecast Bias %] for year-to-date through the reporting month.
+	measure 'Forecast Bias % (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 7ec17032-1a7e-52ad-9f25-dec0651d9d36
+
+	/// [GM % pts vs Budget] for year-to-date through the reporting month.
+	measure 'GM % pts vs Budget (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 87ec0f5a-6864-5d5d-8fe4-f1ba391bef64
+
+	/// [Bridge Value] for year-to-date through the reporting month.
+	measure 'Bridge Value (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Bridge Value], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 3bcf6f68-e02e-561c-b258-8fcfd46e3e15
+
+	/// [Bridge Value] for the reporting month.
+	measure 'Bridge Value (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Bridge Value], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: c85ccfa8-7aa7-5c32-ac2e-c628eaf72907
+
+	/// [Active Customers] for the reporting month.
+	measure 'Active Customers (Month)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Active Customers], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+			    )
+		formatString: #,0
+		displayFolder: 05 Reporting Period
+		lineageTag: f136e861-03e9-5644-9eb4-b6074add586b
+
+	/// [Active Customers] for year-to-date through the reporting month.
+	measure 'Active Customers (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Active Customers], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: #,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 463ed294-af86-503d-a812-4679e1a57ec8
+
+	/// [Avg Order Value] for year-to-date through the reporting month.
+	measure 'Avg Order Value (YTD)' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Avg Order Value], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			    )
+		formatString: \$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 5928b337-1486-5530-9c4a-423152e2f717
+
+	/// Month-over-month growth of net sales for the reporting month.
+	measure 'MoM %' =
+			VAR _cur = [Net Sales (Month)]
+			VAR _prev = [Net Sales (Prior Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 6daa709e-65e6-5774-adb1-7b621a985e76
+
+	/// Reporting month vs the same month last year.
+	measure 'YoY % (Month)' =
+			VAR _cur = [Net Sales (Month)]
+			VAR _prev = [Net Sales (PY Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 1f76a5b7-b590-534f-a61f-be8d3844e278
+
+	/// Quarter-to-date vs the equivalent period of the prior quarter.
+	measure 'QoQ %' =
+			VAR _cur = [Net Sales (QTD)]
+			VAR _prev = [Net Sales (Prior QTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 613b66b0-716e-5d85-af6d-b9ce85d15bd8
+
+	/// Quarter-to-date vs the same period last year.
+	measure 'YoY % (QTD)' =
+			VAR _cur = [Net Sales (QTD)]
+			VAR _prev = [Net Sales (PY QTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 3f05c96c-fd55-503a-b0e8-1a623c07ab56
+
+	/// Year-to-date vs the same period last year.
+	measure 'YoY % (YTD)' =
+			VAR _cur = [Net Sales (YTD)]
+			VAR _prev = [Net Sales (PY YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 5157e442-8c3a-5264-973a-57017eb30516
+
+	/// Rolling 12 months vs the prior rolling 12 months.
+	measure 'YoY % (R12M)' =
+			VAR _cur = [Net Sales (R12M)]
+			VAR _prev = [Net Sales (PY R12M)]
+			RETURN
+			    IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 938777d5-debe-59e4-96de-664258bdfb2c
+
+	/// Month-over-month change in net sales ($).
+	measure 'MoM Change' = IF ( NOT ISBLANK ( [Net Sales (Month)] ), [Net Sales (Month)] - [Net Sales (Prior Month)] )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 3259d904-bfbf-529a-b3f6-8413351420d7
+
+	/// Year-to-date change vs last year ($).
+	measure 'YoY Change (YTD)' = IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Net Sales (YTD)] - [Net Sales (PY YTD)] )
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 05 Reporting Period
+		lineageTag: 360f079b-cb1d-5f3d-80c1-41a85854d46c
+
+	/// Change in YTD gross margin % vs last year (percentage points).
+	measure 'GM % pts vs PY (YTD)' = IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Gross Margin % (YTD)] - [Gross Margin % (PY YTD)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 9c0f9206-cfda-57e2-8a5d-ccba99ae7af0
+
+	/// Change in the reporting month's gross margin % vs the same month last year.
+	measure 'GM % pts vs PY (Month)' = IF ( NOT ISBLANK ( [Net Sales (Month)] ), [Gross Margin % (Month)] - [Gross Margin % (PY Month)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: c20f373e-663b-5655-86e1-908e1a2346e9
+
+	/// Change in YTD discount depth vs last year (percentage points).
+	measure 'Discount % pts vs PY (YTD)' = IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Discount % (YTD)] - [Discount % (PY YTD)] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 05 Reporting Period
+		lineageTag: 875808f9-9df0-5a08-83fd-c8fca0e86ca1
+
+	/// Net sales for the same period last year, for whatever dates are in context.
+	measure 'Net Sales PY' = CALCULATE ( [Net Sales], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: e1fff2eb-3540-5f49-bb96-f6d86aea4286
+
+	/// Year-over-year growth for the dates in context.
+	measure 'YoY %' = IF ( NOT ISBLANK ( [Net Sales] ), DIVIDE ( [Net Sales] - [Net Sales PY], [Net Sales PY] ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: f3241975-471e-50ff-82ac-73e9c27a1ccf
+
+	/// Previous month, quarter or year depending on the level shown in the visual.
+	measure 'Net Sales Prior Period' =
+			SWITCH (
+			    TRUE (),
+			    ISINSCOPE ( 'Date'[Month] ) || ISINSCOPE ( 'Date'[Month Year] ), CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, MONTH ) ),
+			    ISINSCOPE ( 'Date'[Quarter] ) || ISINSCOPE ( 'Date'[Year Quarter] ), CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, QUARTER ) ),
+			    CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, YEAR ) )
+			)
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: c9345bc8-833f-544a-b264-8a9cc781608c
+
+	/// Period-over-period growth: MoM at month level, QoQ at quarter level, YoY at year level.
+	measure 'PoP %' = IF ( NOT ISBLANK ( [Net Sales] ), DIVIDE ( [Net Sales] - [Net Sales Prior Period], [Net Sales Prior Period] ) )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: 3816d20a-1619-5921-8cd3-d88335a0a644
+
+	/// Cumulative year-to-date net sales along a date axis (stops at the last closed month).
+	measure 'Net Sales Running YTD' = IF ( MIN ( 'Date'[Date] ) <= [Last Actual Date], CALCULATE ( [Net Sales], DATESYTD ( 'Date'[Date] ) ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: 7f7961ac-dbc3-5062-b34b-7dced0720058
+
+	/// Prior-year cumulative YTD along a date axis.
+	measure 'Net Sales Running YTD PY' = CALCULATE ( CALCULATE ( [Net Sales], DATESYTD ( 'Date'[Date] ) ), SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: 59a9090b-7af6-5eaa-9e9e-1c285b2484f0
+
+	/// Cumulative budget along a date axis (full year).
+	measure 'Budget Running YTD' = CALCULATE ( [Budget Net Sales], DATESYTD ( 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: aa4066a0-ed88-510a-9349-c86e3ac6e385
+
+	/// Cumulative forecast along a date axis (full year).
+	measure 'Forecast Running YTD' = CALCULATE ( [Forecast Net Sales], DATESYTD ( 'Date'[Date] ) )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: 8abf72cd-4ae9-5a08-9387-f274977d7deb
+
+	/// Three-month moving average of net sales.
+	measure 'Net Sales 3M Avg' =
+			VAR _end = MAX ( 'Date'[Date] )
+			RETURN
+			    IF (
+			        MIN ( 'Date'[Date] ) <= [Last Actual Date],
+			        CALCULATE ( [Net Sales], DATESINPERIOD ( 'Date'[Date], _end, -3, MONTH ) ) / 3
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 06 Time Intelligence (context)
+		lineageTag: b2c17ba8-11ed-5569-8fab-8f3f0f10adcd
+
+	/// Latest estimate for the year: YTD actuals plus forecast for the remaining months.
+	measure 'Full Year Outlook' =
+			VAR _rd = [Reporting Date]
+			VAR _ytd = CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+			VAR _rest = CALCULATE ( [Forecast Net Sales], DATESBETWEEN ( 'Date'[Date], _rd + 1, DATE ( YEAR ( _rd ), 12, 31 ) ) )
+			RETURN
+			    IF ( NOT ISBLANK ( _rd ), _ytd + _rest )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 784f78fd-7cc0-5b5e-9e9e-f9e0b799e569
+
+	/// Full-year budget for the reporting year.
+	measure 'Full Year Budget' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Budget Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), DATE ( YEAR ( _rd ), 12, 31 ) ) )
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 05785257-13e9-5b0e-823c-16cff7a6a02d
+
+	/// Full-year outlook minus full-year budget.
+	measure 'Outlook vs Budget' = [Full Year Outlook] - [Full Year Budget]
+		formatString: +\$#,0;-\$#,0;\$#,0
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 982de337-cd39-5e04-a4c4-eb1986834ffa
+
+	/// Full-year outlook vs budget, %.
+	measure 'Outlook vs Budget %' = DIVIDE ( [Outlook vs Budget], [Full Year Budget] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 88d115d4-47a9-5acb-99dd-945dca6156d6
+
+	/// YTD actuals as a % of YTD budget.
+	measure 'Budget Attainment % (YTD)' = DIVIDE ( [Net Sales (YTD)], [Budget Net Sales (Closed) (YTD)] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: ebcdafc1-6d25-5cd7-a4c5-34d5d362db4e
+
+	/// Share of the full-year budget already delivered.
+	measure 'Full Year Budget Achieved %' = DIVIDE ( [Net Sales (YTD)], [Full Year Budget] )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 14b1b017-518b-5258-881d-b98e28359890
+
+	/// Last three closed months x 4.
+	measure 'Annualised Run Rate' =
+			VAR _rd = [Reporting Date]
+			RETURN
+			    IF (
+			        NOT ISBLANK ( _rd ),
+			        CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -3 ) + 1, _rd ) ) * 4
+			    )
+		formatString: \$#,0;(\$#,0);\$#,0
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: e0a393ea-6d56-5b86-bd56-a619175dde39
+
+	/// YTD net sales per active customer.
+	measure 'Revenue per Customer (YTD)' = DIVIDE ( [Net Sales (YTD)], [Active Customers (YTD)] )
+		formatString: \$#,0
+		displayFolder: 07 Outlook & KPIs
+		lineageTag: 435d41fa-8eb5-57c7-a06e-8a03fc696597
+
+	/// Rank of the product by YTD net sales within the current selection.
+	measure 'Product Rank (YTD)' = IF ( ISINSCOPE ( 'Product'[Product] ), RANKX ( ALLSELECTED ( 'Product'[Product] ), [Net Sales (YTD)], , DESC, DENSE ) )
+		formatString: 0
+		displayFolder: 08 Ranking & Mix
+		lineageTag: f0ed5b3c-0caa-5cac-82b6-b8b7e86801a6
+
+	/// Rank of the customer by YTD net sales within the current selection.
+	measure 'Customer Rank (YTD)' = IF ( ISINSCOPE ( 'Customer'[Customer] ), RANKX ( ALLSELECTED ( 'Customer'[Customer] ), [Net Sales (YTD)], , DESC, DENSE ) )
+		formatString: 0
+		displayFolder: 08 Ranking & Mix
+		lineageTag: 58e43293-e881-5916-99fd-780c8c38bba9
+
+	/// Product/brand/category share of YTD net sales within the current selection.
+	measure 'Share of Net Sales (YTD)' = DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Product' ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 08 Ranking & Mix
+		lineageTag: 04a8efe0-13ce-57a5-9842-8978c70530d1
+
+	/// Channel share of YTD net sales.
+	measure 'Channel Share (YTD)' = DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Channel' ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 08 Ranking & Mix
+		lineageTag: ab35474f-4469-57b4-abb8-aea6d6818c52
+
+	/// Region share of YTD net sales.
+	measure 'Region Share (YTD)' = DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Region' ) ) )
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: 08 Ranking & Mix
+		lineageTag: c96fc91d-5998-50f1-8906-3f1388a24278
+
+	/// Static report title.
+	measure 'Report Title' = "Month-End Financial Report"
+		displayFolder: 09 Labels & Formatting
+		lineageTag: aecec73e-629a-5b57-8b01-07201102f9cc
+
+	/// Dynamic subtitle showing the period being reported.
+	measure 'Reporting Period Label' = "Close period  ·  " & FORMAT ( [Reporting Date], "MMMM yyyy" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 7d5fe355-5078-5a2c-8332-a752322f2bfd
+
+	/// Footer label with the actuals cut-off.
+	measure 'Data As Of Label' = "Actuals through " & FORMAT ( [Last Actual Date], "d MMM yyyy" ) & "  ·  USD"
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 8ddffff7-cfd0-56fa-9ce4-325fd5998e4f
+
+	/// Subtitle for the monthly net sales KPI tile.
+	measure 'KPI Label Net Sales (Month)' =
+			VAR _vf = [Var % vs Forecast (Month)]
+			VAR _yoy = [YoY % (Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _vf ), IF ( _vf >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _vf ), "0.0%" ) & " vs Fcst    " & IF ( _yoy >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _yoy ), "0.0%" ) & " YoY" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: abd94f50-8c15-5459-ba61-489639a8ceb3
+
+	/// Subtitle for the gross margin % KPI tile.
+	measure 'KPI Label Gross Margin % (Month)' =
+			VAR _vb = [GM % pts vs Budget (Month)]
+			VAR _py = [GM % pts vs PY (Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _vb ), IF ( _vb * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _vb * 100 ), "0.0" ) & " pp vs Bud    " & IF ( _py * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _py * 100 ), "0.0" ) & " pp YoY" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: e4a378df-dce5-5131-8b3b-4a11159a5e45
+
+	/// Subtitle for the YTD net sales KPI tile.
+	measure 'KPI Label Net Sales (YTD)' =
+			VAR _yoy = [YoY % (YTD)]
+			VAR _att = [Budget Attainment % (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _yoy ), IF ( _yoy >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _yoy ), "0.0%" ) & " YoY    " & FORMAT ( _att, "0.0%" ) & " of budget" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 477b1ba0-c714-5203-91a0-19362364a1b3
+
+	/// Subtitle for the full-year outlook KPI tile.
+	measure 'KPI Label Outlook' =
+			VAR _v = [Outlook vs Budget %]
+			RETURN
+			    IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs FY budget  (" & FORMAT ( [Full Year Budget], "$#,0.0,,") & "M)" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 98f44724-9dae-5218-b9aa-4c4031c39aeb
+
+	/// Subtitle for the forecast accuracy KPI tile.
+	measure 'KPI Label Accuracy (Month)' =
+			VAR _a = [Forecast Accuracy % (Month)]
+			VAR _b = [Forecast Bias % (Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _a ), "Target " & FORMAT ( [Forecast Accuracy Target], "0%" ) & "    Bias " & FORMAT ( _b, "+0.0%;-0.0%" ) )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: d8af2009-2a58-5f06-a25e-a9e2292a7f87
+
+	/// Subtitle for the monthly forecast variance tile.
+	measure 'KPI Label Var vs Forecast (Month)' =
+			VAR _v = [Var % vs Forecast (Month)]
+			RETURN
+			    IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " of forecast  ·  " & FORMAT ( [Forecast Net Sales (Closed) (Month)], "$#,0.00,,") & "M fcst" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: b37cc63a-2487-57d9-b501-9b9e87d894f0
+
+	/// Subtitle for the YTD budget variance tile.
+	measure 'KPI Label Var vs Budget (YTD)' =
+			VAR _v = [Var % vs Budget (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " of budget  ·  " & FORMAT ( [Budget Net Sales (Closed) (YTD)], "$#,0.0,,") & "M bud" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 973cee0b-e8e5-5422-b3f3-e04b75f41654
+
+	/// Subtitle for the YTD forecast accuracy tile.
+	measure 'KPI Label Accuracy (YTD)' =
+			VAR _a = [Forecast Accuracy % (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _a ), "MAPE (SKU) " & FORMAT ( CALCULATE ( [MAPE %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( [Reporting Date] ), 1, 1 ), [Reporting Date] ) ), "0.0%" ) & "    Target " & FORMAT ( [Forecast Accuracy Target], "0%" ) )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 498025a3-ce7a-58c9-a35c-caff962b9284
+
+	/// Subtitle for the forecast bias tile.
+	measure 'KPI Label Bias (YTD)' =
+			VAR _b = [Forecast Bias % (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _b ), IF ( _b > 0.005, "Over-forecasting", IF ( _b < -0.005, "Under-forecasting", "Unbiased" ) ) & "  ·  ±0.5% tolerance" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 667427ee-ad69-53bc-ada5-978e1cb82269
+
+	/// Subtitle for the QTD tile.
+	measure 'KPI Label QTD' =
+			VAR _q = [QoQ %]
+			VAR _y = [YoY % (QTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _q ), IF ( _q >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _q ), "0.0%" ) & " QoQ    " & IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " YoY" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 1fb70353-4103-5004-b0bd-2025b9518c3c
+
+	/// Subtitle for the YTD vs PY tile.
+	measure 'KPI Label YTD YoY' =
+			VAR _y = [YoY % (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _y ), IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " vs PY  (" & FORMAT ( [YoY Change (YTD)], "+$#,0.0,,;-$#,0.0,,") & "M)" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 4865ab28-b3db-5ebb-8c51-21499306a516
+
+	/// Subtitle for the rolling 12M tile.
+	measure 'KPI Label R12M' =
+			VAR _y = [YoY % (R12M)]
+			RETURN
+			    IF ( NOT ISBLANK ( _y ), IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " vs prior 12M  ·  run rate " & FORMAT ( [Annualised Run Rate], "$#,0.0,,") & "M" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: b1bfbbae-70c7-52c5-bc49-b73ddeb6057a
+
+	/// Subtitle for the YTD gross margin % tile.
+	measure 'KPI Label GM % (YTD)' =
+			VAR _p = [GM % pts vs PY (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _p ), IF ( _p * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _p * 100 ), "0.0" ) & " pp vs PY  ·  GM " & FORMAT ( [Gross Margin (YTD)], "$#,0.0,,") & "M" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: be7558c4-63f6-526b-9723-8abdbafbedd6
+
+	/// Subtitle for the YTD discount % tile.
+	measure 'KPI Label Discount % (YTD)' =
+			VAR _p = [Discount % pts vs PY (YTD)]
+			RETURN
+			    IF ( NOT ISBLANK ( _p ), IF ( _p * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _p * 100 ), "0.0" ) & " pp vs PY  ·  " & FORMAT ( [Discounts], "$#,0.0,,") & "M all-time" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 59369426-3743-5a35-9b8e-c365340ab9e8
+
+	/// Hex colour for conditional formatting driven by [Var % vs Forecast]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Forecast' =
+			VAR _v = [Var % vs Forecast]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: f060ea4e-721d-52ff-aa5e-5ac06a76c107
+
+	/// Hex colour for conditional formatting driven by [Var % vs Budget]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Budget' =
+			VAR _v = [Var % vs Budget]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 6744dce0-ad48-54d4-af63-4e51a76cd34f
+
+	/// Hex colour for conditional formatting driven by [Var % vs Forecast (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Forecast (Month)' =
+			VAR _v = [Var % vs Forecast (Month)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 44993160-9e84-5d57-b978-964c3db56eb7
+
+	/// Hex colour for conditional formatting driven by [Var % vs Budget (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Budget (YTD)' =
+			VAR _v = [Var % vs Budget (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: bf2abb4e-52a5-5828-ae04-f980d3756dd7
+
+	/// Hex colour for conditional formatting driven by [YoY % (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color YoY % (Month)' =
+			VAR _v = [YoY % (Month)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 79d0eb23-fb95-560e-a7e2-afd3e7f02626
+
+	/// Hex colour for conditional formatting driven by [YoY % (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color YoY % (YTD)' =
+			VAR _v = [YoY % (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 83e4a762-9f52-5b23-82bb-54440da74be3
+
+	/// Hex colour for conditional formatting driven by [YoY %]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color YoY %' =
+			VAR _v = [YoY %]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 9d96e6d0-1046-5fa4-8400-75f8ce0f45bc
+
+	/// Hex colour for conditional formatting driven by [PoP %]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color PoP %' =
+			VAR _v = [PoP %]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 60e4180c-44a4-5937-a2a3-945b7d2a069b
+
+	/// Hex colour for conditional formatting driven by [GM % pts vs Budget (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color GM pts vs Budget (Month)' =
+			VAR _v = [GM % pts vs Budget (Month)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 7678eeaf-a6a2-5525-88b8-75ce52696f55
+
+	/// Hex colour for conditional formatting driven by [GM % pts vs PY (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color GM pts vs PY (YTD)' =
+			VAR _v = [GM % pts vs PY (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: a948c639-1f21-5923-9a37-9607d4d9cc42
+
+	/// Hex colour for discount depth change: deeper discounts (positive) are unfavourable.
+	measure 'Color Discount pts vs PY (YTD)' =
+			VAR _v = [Discount % pts vs PY (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#D03B3B",
+			        _v <= -0.005, "#006300",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 111741f1-7709-584f-8fc2-ee6c1f5207e2
+
+	/// Hex colour for conditional formatting driven by [Outlook vs Budget %]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Outlook vs Budget' =
+			VAR _v = [Outlook vs Budget %]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: e4274fab-eef1-5f06-8511-e5e8aef184cd
+
+	/// Hex colour for conditional formatting driven by [QoQ %]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color QoQ %' =
+			VAR _v = [QoQ %]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: f1cf5a21-5a8a-5ac2-9850-9fe191aa96b3
+
+	/// Hex colour for conditional formatting driven by [YoY % (R12M)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color YoY % (R12M)' =
+			VAR _v = [YoY % (R12M)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 5fa9d64e-8c7e-5781-8c6b-9c25c484c7e4
+
+	/// Reporting-month forecast accuracy minus target.
+	measure 'Accuracy vs Target (Month)' = IF ( NOT ISBLANK ( [Forecast Accuracy % (Month)] ), [Forecast Accuracy % (Month)] - [Forecast Accuracy Target] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 8d2c5e5c-c1ba-5781-bbf4-e60f9c631c97
+
+	/// YTD forecast accuracy minus target.
+	measure 'Accuracy vs Target (YTD)' = IF ( NOT ISBLANK ( [Forecast Accuracy % (YTD)] ), [Forecast Accuracy % (YTD)] - [Forecast Accuracy Target] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 04 Forecast Accuracy
+		lineageTag: 0443383e-f9ec-54fd-af59-cfec7a64ebff
+
+	/// Hex colour for conditional formatting driven by [Accuracy vs Target (YTD)]: green favourable, red unfavourable, grey within ±0.0%.
+	measure 'Color Accuracy vs Target (YTD)' =
+			VAR _v = [Accuracy vs Target (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.0001, "#006300",
+			        _v <= -0.0001, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: a1eaa242-dcd6-5930-bdbf-4134a2e27611
+
+	/// Hex colour for conditional formatting driven by [Accuracy vs Target (Month)]: green favourable, red unfavourable, grey within ±0.0%.
+	measure 'Color Accuracy vs Target (Month)' =
+			VAR _v = [Accuracy vs Target (Month)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.0001, "#006300",
+			        _v <= -0.0001, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: fc2dab5f-736c-57d8-8297-6027cfd72127
+
+	/// Hex colour for conditional formatting driven by [Var % vs Budget (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Budget (Month)' =
+			VAR _v = [Var % vs Budget (Month)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 0f2b443e-a8d3-564f-a5b4-5837748aeeb6
+
+	/// Hex colour for conditional formatting driven by [Var % vs Forecast (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+	measure 'Color Var % vs Forecast (YTD)' =
+			VAR _v = [Var % vs Forecast (YTD)]
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        ISBLANK ( _v ), "#898781",
+			        _v >= 0.005, "#006300",
+			        _v <= -0.005, "#D03B3B",
+			        "#52514E"
+			    )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 9286a429-427e-5069-9894-8deb9628e7f8
+
+	/// Green when forecast bias is within ±0.5%.
+	measure 'Color Bias (YTD)' =
+			VAR _b = [Forecast Bias % (YTD)]
+			RETURN
+			    IF ( ABS ( _b ) <= 0.005, "#006300", "#52514E" )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 1f2cc89c-a396-5015-bbe7-c5ab5e5a3802
+
+	/// Bar fill colour for forecast variance: green favourable, red unfavourable.
+	measure 'Fill Var vs Forecast' =
+			VAR _v = [Var vs Forecast]
+			RETURN
+			    IF ( ISBLANK ( _v ), BLANK (), IF ( _v >= 0, "#0CA30C", "#D03B3B" ) )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 4d90f77a-8545-54c2-a991-1134e117977d
+
+	/// Bar fill colour for the reporting month's forecast variance.
+	measure 'Fill Var vs Forecast (Month)' =
+			VAR _v = [Var vs Forecast (Month)]
+			RETURN
+			    IF ( ISBLANK ( _v ), BLANK (), IF ( _v >= 0, "#0CA30C", "#D03B3B" ) )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 1cea0a63-b9fa-5b73-8c23-a011990a624a
+
+	/// Column fill for forecast accuracy: blue at/above target, orange below.
+	measure 'Fill Accuracy' =
+			VAR _a = [Forecast Accuracy %]
+			RETURN
+			    IF ( ISBLANK ( _a ), BLANK (), IF ( _a >= [Forecast Accuracy Target], "#2A78D6", "#EB6834" ) )
+		displayFolder: 09 Labels & Formatting
+		lineageTag: 3a218bbf-7f1e-59d2-bc4b-60545e379c34
+
+	column MeasureHelper
+		dataType: string
+		isHidden
+		lineageTag: a99042bb-9dd5-5c4e-892e-9a0e1677f8bd
+		summarizeBy: none
+		sourceColumn: MeasureHelper
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		queryGroup: Helpers
+		source =
+				let
+				    Source = #table(type table [MeasureHelper = text], {})
+				in
+				    Source
+
+	annotation PBI_ResultType = Table

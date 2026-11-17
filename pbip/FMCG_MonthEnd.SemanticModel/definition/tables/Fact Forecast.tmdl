@@ -1,0 +1,139 @@
+table 'Fact Forecast'
+	lineageTag: 9936004c-23fe-5b43-85f8-7fc13055566b
+
+	column ForecastLineID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e3a06b43-b9a5-5637-a9a6-bb2fc8cde63c
+		summarizeBy: none
+		sourceColumn: ForecastLineID
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthStartDate
+		dataType: dateTime
+		isHidden
+		formatString: mmm yyyy
+		lineageTag: f9e64e73-758d-578e-a3e9-b4cf45737cc5
+		summarizeBy: none
+		sourceColumn: MonthStartDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ForecastVersion
+		dataType: string
+		isHidden
+		lineageTag: 7fbed637-3380-58ea-8672-61ed10713666
+		summarizeBy: none
+		sourceColumn: ForecastVersion
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 218a8450-edb6-5472-b63c-3a0e59fd32aa
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RegionKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 763fadae-a42d-577e-ad88-869ec2da7a43
+		summarizeBy: none
+		sourceColumn: RegionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 975d3a00-9b1b-55e3-b2c3-83297aae949f
+		summarizeBy: none
+		sourceColumn: ChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ForecastUnits
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 1ca03784-79b1-5d86-b403-2969d5b4bfae
+		summarizeBy: sum
+		sourceColumn: ForecastUnits
+
+		annotation SummarizationSetBy = Automatic
+
+	column ForecastNetSales
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: 73cc18e8-dc05-5c36-af9f-9e8029f43d31
+		summarizeBy: sum
+		sourceColumn: ForecastNetSales
+
+		annotation SummarizationSetBy = Automatic
+
+	column ForecastCOGS
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: b830b212-e2f2-56dd-96e0-8dace20c7ddc
+		summarizeBy: sum
+		sourceColumn: ForecastCOGS
+
+		annotation SummarizationSetBy = Automatic
+
+	column BudgetUnits
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 808a8a96-8bce-59e3-bd7b-9c509a56f17a
+		summarizeBy: sum
+		sourceColumn: BudgetUnits
+
+		annotation SummarizationSetBy = Automatic
+
+	column BudgetNetSales
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: 8586c6c4-66cc-5d93-80ab-5874cb4d1b9a
+		summarizeBy: sum
+		sourceColumn: BudgetNetSales
+
+		annotation SummarizationSetBy = Automatic
+
+	column BudgetCOGS
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: adbdbeab-457b-5eda-9944-3f7a37a051dc
+		summarizeBy: sum
+		sourceColumn: BudgetCOGS
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Forecast' = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "fact_forecast.csv"), [Delimiter = ",", Columns = 13, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {
+				        {"ForecastLineID", Int64.Type}, {"MonthStartDate", type date}, {"ForecastVersion", type text},
+				        {"ProductKey", Int64.Type}, {"RegionKey", Int64.Type}, {"ChannelKey", Int64.Type},
+				        {"ForecastUnits", Int64.Type}, {"ForecastNetSales", type number}, {"ForecastCOGS", type number},
+				        {"BudgetUnits", Int64.Type}, {"BudgetNetSales", type number}, {"BudgetCOGS", type number}}, "en-US"),
+				    RemovedErrors = Table.RemoveRowsWithErrors(ChangedType, {"MonthStartDate", "ProductKey"})
+				in
+				    RemovedErrors
+
+	annotation PBI_ResultType = Table

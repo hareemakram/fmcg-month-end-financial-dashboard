@@ -1,0 +1,151 @@
+table 'Fact Sales'
+	lineageTag: 54910b7b-3849-5f5a-86cf-986ae1498b4d
+
+	column SalesLineID
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 778d338d-aa02-51a5-b19b-25d95749d6f5
+		summarizeBy: none
+		sourceColumn: SalesLineID
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderNumber
+		dataType: string
+		isHidden
+		lineageTag: 3caeee51-2c41-5842-9958-15893198991c
+		summarizeBy: none
+		sourceColumn: OrderNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrderDate
+		dataType: dateTime
+		isHidden
+		formatString: dd mmm yyyy
+		lineageTag: 8daa6969-c5b2-5401-906b-09546fd3277f
+		summarizeBy: none
+		sourceColumn: OrderDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: dbd0222b-e7f1-585f-aa66-4097d45eb92b
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7c794280-ac6d-53c7-a1ab-1bec73ea5a5e
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column RegionKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 452c9799-62b8-507f-8261-fcd3e640320f
+		summarizeBy: none
+		sourceColumn: RegionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column ChannelKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4e8a5975-0f83-5f35-8a6f-79e66d6bed17
+		summarizeBy: none
+		sourceColumn: ChannelKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Units
+		dataType: int64
+		isHidden
+		formatString: #,0
+		lineageTag: 7616714e-0d17-5bd3-aa85-01dcb9715d35
+		summarizeBy: sum
+		sourceColumn: Units
+
+		annotation SummarizationSetBy = Automatic
+
+	column UnitListPrice
+		dataType: double
+		isHidden
+		formatString: \$#,0.00
+		lineageTag: 75e4e6b3-d68c-5026-8068-a81cf45e9892
+		summarizeBy: none
+		sourceColumn: UnitListPrice
+
+		annotation SummarizationSetBy = Automatic
+
+	column GrossSales
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: b15802ba-e6fd-5606-832e-7f71d3484c47
+		summarizeBy: sum
+		sourceColumn: GrossSales
+
+		annotation SummarizationSetBy = Automatic
+
+	column DiscountAmount
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: cdc355ec-b95a-5658-a108-dd04ea5e4978
+		summarizeBy: sum
+		sourceColumn: DiscountAmount
+
+		annotation SummarizationSetBy = Automatic
+
+	column NetSales
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: 4ad1556e-8387-531d-9ee9-69107539b9dd
+		summarizeBy: sum
+		sourceColumn: NetSales
+
+		annotation SummarizationSetBy = Automatic
+
+	column COGS
+		dataType: double
+		isHidden
+		formatString: \$#,0
+		lineageTag: bc92daff-91de-5d3f-a396-3098abd0ff1d
+		summarizeBy: sum
+		sourceColumn: COGS
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Fact Sales' = m
+		mode: import
+		queryGroup: Facts
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "fact_sales.csv"), [Delimiter = ",", Columns = 14, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {
+				        {"SalesLineID", Int64.Type}, {"OrderNumber", type text}, {"OrderDate", type date},
+				        {"ProductKey", Int64.Type}, {"CustomerKey", Int64.Type}, {"RegionKey", Int64.Type}, {"ChannelKey", Int64.Type},
+				        {"Units", Int64.Type}, {"UnitListPrice", type number}, {"GrossSales", type number},
+				        {"DiscountAmount", type number}, {"NetSales", type number}, {"COGS", type number}}, "en-US"),
+				    // Guard rails: drop malformed rows rather than failing the whole refresh
+				    RemovedErrors = Table.RemoveRowsWithErrors(ChangedType, {"OrderDate", "ProductKey", "NetSales"}),
+				    FilteredValid = Table.SelectRows(RemovedErrors, each [OrderDate] <> null and [Units] <> null)
+				in
+				    FilteredValid
+
+	annotation PBI_ResultType = Table

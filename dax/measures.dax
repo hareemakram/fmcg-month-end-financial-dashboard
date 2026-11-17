@@ -1,0 +1,1146 @@
+// FMCG Month-End Financial Reporting - DAX measure library
+// Paste into Power BI Desktop > DAX query view (or Tabular Editor) and choose 'Update model with changes'
+// to (re)create every measure in the _Measures table.
+
+DEFINE
+
+    // ===== 01 Actuals =====
+    /// Invoice value at list price, before trade discounts.
+    MEASURE '_Measures'[Gross Sales] =
+        SUM ( 'Fact Sales'[GrossSales] )
+    /// Trade and promotional discounts.
+    MEASURE '_Measures'[Discounts] =
+        SUM ( 'Fact Sales'[DiscountAmount] )
+    /// Gross sales less discounts. The headline revenue measure.
+    MEASURE '_Measures'[Net Sales] =
+        SUM ( 'Fact Sales'[NetSales] )
+    /// Cost of goods sold at standard cost.
+    MEASURE '_Measures'[COGS] =
+        SUM ( 'Fact Sales'[COGS] )
+    /// Net sales less COGS.
+    MEASURE '_Measures'[Gross Margin] =
+        [Net Sales] - [COGS]
+    /// Gross margin as a share of net sales.
+    MEASURE '_Measures'[Gross Margin %] =
+        DIVIDE ( [Gross Margin], [Net Sales] )
+    /// Units invoiced.
+    MEASURE '_Measures'[Units Sold] =
+        SUM ( 'Fact Sales'[Units] )
+    /// Discounts as a share of gross sales.
+    MEASURE '_Measures'[Discount %] =
+        DIVIDE ( [Discounts], [Gross Sales] )
+    /// Net sales per unit.
+    MEASURE '_Measures'[Avg Net Price] =
+        DIVIDE ( [Net Sales], [Units Sold] )
+    /// Number of distinct sales orders.
+    MEASURE '_Measures'[Orders] =
+        DISTINCTCOUNT ( 'Fact Sales'[OrderNumber] )
+    /// Net sales per order.
+    MEASURE '_Measures'[Avg Order Value] =
+        DIVIDE ( [Net Sales], [Orders] )
+    /// Customers with at least one invoice in context.
+    MEASURE '_Measures'[Active Customers] =
+        DISTINCTCOUNT ( 'Fact Sales'[CustomerKey] )
+    /// SKUs with at least one invoice in context.
+    MEASURE '_Measures'[Active SKUs] =
+        DISTINCTCOUNT ( 'Fact Sales'[ProductKey] )
+
+    // ===== 02 Forecast & Budget =====
+    /// Latest rolling forecast of net sales (all periods, including future months).
+    MEASURE '_Measures'[Forecast Net Sales] =
+        SUM ( 'Fact Forecast'[ForecastNetSales] )
+    /// Latest rolling forecast of units.
+    MEASURE '_Measures'[Forecast Units] =
+        SUM ( 'Fact Forecast'[ForecastUnits] )
+    /// Forecast cost of goods sold.
+    MEASURE '_Measures'[Forecast COGS] =
+        SUM ( 'Fact Forecast'[ForecastCOGS] )
+    /// Forecast net sales less forecast COGS.
+    MEASURE '_Measures'[Forecast Gross Margin] =
+        [Forecast Net Sales] - [Forecast COGS]
+    /// Forecast gross margin %.
+    MEASURE '_Measures'[Forecast Gross Margin %] =
+        DIVIDE ( [Forecast Gross Margin], [Forecast Net Sales] )
+    /// Annual operating plan (budget) net sales.
+    MEASURE '_Measures'[Budget Net Sales] =
+        SUM ( 'Fact Forecast'[BudgetNetSales] )
+    /// Budget units.
+    MEASURE '_Measures'[Budget Units] =
+        SUM ( 'Fact Forecast'[BudgetUnits] )
+    /// Budget cost of goods sold.
+    MEASURE '_Measures'[Budget COGS] =
+        SUM ( 'Fact Forecast'[BudgetCOGS] )
+    /// Budget net sales less budget COGS.
+    MEASURE '_Measures'[Budget Gross Margin] =
+        [Budget Net Sales] - [Budget COGS]
+    /// Budget gross margin %.
+    MEASURE '_Measures'[Budget Gross Margin %] =
+        DIVIDE ( [Budget Gross Margin], [Budget Net Sales] )
+    /// Forecast Net Sales restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Forecast Net Sales (Closed)] =
+        CALCULATE ( [Forecast Net Sales], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Forecast Units restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Forecast Units (Closed)] =
+        CALCULATE ( [Forecast Units], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Forecast Gross Margin restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Forecast Gross Margin (Closed)] =
+        CALCULATE ( [Forecast Gross Margin], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Budget Net Sales restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Budget Net Sales (Closed)] =
+        CALCULATE ( [Budget Net Sales], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Budget Units restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Budget Units (Closed)] =
+        CALCULATE ( [Budget Units], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Budget Gross Margin restricted to closed periods, so it is like-for-like with actuals (future months are excluded).
+    MEASURE '_Measures'[Budget Gross Margin (Closed)] =
+        CALCULATE ( [Budget Gross Margin], KEEPFILTERS ( 'Date'[Is Actual Period] = TRUE () ) )
+    /// Budget GM % for closed periods.
+    MEASURE '_Measures'[Budget Gross Margin % (Closed)] =
+        DIVIDE ( [Budget Gross Margin (Closed)], [Budget Net Sales (Closed)] )
+
+    // ===== 03 Variance =====
+    /// Actual net sales minus forecast (closed periods). Positive = favourable.
+    MEASURE '_Measures'[Var vs Forecast] =
+        VAR _act = [Net Sales]
+        VAR _fc = [Forecast Net Sales (Closed)]
+        RETURN
+            IF ( NOT ISBLANK ( _act ) || NOT ISBLANK ( _fc ), _act - _fc )
+    /// Variance to forecast as a % of forecast.
+    MEASURE '_Measures'[Var % vs Forecast] =
+        DIVIDE ( [Var vs Forecast], [Forecast Net Sales (Closed)] )
+    /// Actual net sales minus budget (closed periods). Positive = favourable.
+    MEASURE '_Measures'[Var vs Budget] =
+        VAR _act = [Net Sales]
+        VAR _bud = [Budget Net Sales (Closed)]
+        RETURN
+            IF ( NOT ISBLANK ( _act ) || NOT ISBLANK ( _bud ), _act - _bud )
+    /// Variance to budget as a % of budget.
+    MEASURE '_Measures'[Var % vs Budget] =
+        DIVIDE ( [Var vs Budget], [Budget Net Sales (Closed)] )
+    /// Units sold minus forecast units.
+    MEASURE '_Measures'[Units Var vs Forecast] =
+        IF ( NOT ISBLANK ( [Units Sold] ), [Units Sold] - [Forecast Units (Closed)] )
+    /// Unit variance to forecast as a %.
+    MEASURE '_Measures'[Units Var % vs Forecast] =
+        DIVIDE ( [Units Var vs Forecast], [Forecast Units (Closed)] )
+    /// Gross margin minus budget gross margin.
+    MEASURE '_Measures'[GM Var vs Budget] =
+        IF ( NOT ISBLANK ( [Net Sales] ), [Gross Margin] - [Budget Gross Margin (Closed)] )
+    /// Gross margin % minus budget GM % (percentage points).
+    MEASURE '_Measures'[GM % pts vs Budget] =
+        IF ( NOT ISBLANK ( [Net Sales] ), [Gross Margin %] - [Budget Gross Margin % (Closed)] )
+    /// Part of the budget variance explained by units (SKU x month grain): (actual units - budget units) x budget price. Includes SKU mix.
+    MEASURE '_Measures'[Volume & Mix Effect vs Budget] =
+        VAR _grid =
+            ADDCOLUMNS (
+                CROSSJOIN (
+                    CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+                    VALUES ( 'Product'[ProductKey] )
+                ),
+                "@ua", [Units Sold],
+                "@na", [Net Sales],
+                "@ub", [Budget Units],
+                "@nb", [Budget Net Sales]
+            )
+        RETURN
+            SUMX (
+                _grid,
+                IF ( [@ub] = 0, [@na] - [@nb], ( [@ua] - [@ub] ) * DIVIDE ( [@nb], [@ub] ) )
+            )
+    /// Part of the budget variance explained by realised net price (list price changes and discount depth). Volume + Price = total variance.
+    MEASURE '_Measures'[Price & Discount Effect vs Budget] =
+        [Var vs Budget] - [Volume & Mix Effect vs Budget]
+    /// Feeds the Budget -> Actual waterfall. The waterfall total equals actual net sales.
+    MEASURE '_Measures'[Bridge Value] =
+        SWITCH (
+            SELECTEDVALUE ( 'Variance Bridge'[Step] ),
+            "Budget", [Budget Net Sales (Closed)],
+            "Volume & Mix", [Volume & Mix Effect vs Budget],
+            "Price & Discount", [Price & Discount Effect vs Budget]
+        )
+
+    // ===== 04 Forecast Accuracy =====
+    /// Target forecast accuracy (1 - WMAPE).
+    MEASURE '_Measures'[Forecast Accuracy Target] =
+        0.90
+    /// Sum of absolute forecast errors at SKU x Region x Month grain (errors don't cancel out across SKUs).
+    MEASURE '_Measures'[Forecast Abs Error] =
+        VAR _grid =
+            CROSSJOIN (
+                CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+                VALUES ( 'Product'[ProductKey] ),
+                VALUES ( 'Region'[RegionKey] )
+            )
+        RETURN
+            SUMX ( _grid, ABS ( [Net Sales] - [Forecast Net Sales] ) )
+    /// Weighted mean absolute percentage error = sum |actual - forecast| / sum actual.
+    MEASURE '_Measures'[WMAPE %] =
+        DIVIDE ( [Forecast Abs Error], [Net Sales] )
+    /// 1 - WMAPE, floored at 0. The standard demand-planning accuracy KPI.
+    MEASURE '_Measures'[Forecast Accuracy %] =
+        IF ( NOT ISBLANK ( [Net Sales] ), MAX ( 0, 1 - [WMAPE %] ) )
+    /// Unweighted mean absolute percentage error across SKU x Month cells (every SKU counts equally).
+    MEASURE '_Measures'[MAPE %] =
+        VAR _grid =
+            ADDCOLUMNS (
+                CROSSJOIN (
+                    CALCULATETABLE ( VALUES ( 'Date'[Year Month Key] ), 'Date'[Is Actual Period] = TRUE () ),
+                    VALUES ( 'Product'[ProductKey] )
+                ),
+                "@a", [Net Sales],
+                "@f", [Forecast Net Sales]
+            )
+        RETURN
+            AVERAGEX ( FILTER ( _grid, [@a] > 0 ), ABS ( [@a] - [@f] ) / [@a] )
+    /// Positive = over-forecasting, negative = under-forecasting.
+    MEASURE '_Measures'[Forecast Bias %] =
+        DIVIDE ( [Forecast Net Sales (Closed)] - [Net Sales], [Net Sales] )
+    /// Forecast accuracy minus target, in percentage points.
+    MEASURE '_Measures'[Accuracy vs Target (pts)] =
+        IF ( NOT ISBLANK ( [Forecast Accuracy %] ), [Forecast Accuracy %] - [Forecast Accuracy Target] )
+
+    // ===== 05 Reporting Period =====
+    /// Month-end of the latest month with actuals, regardless of filters.
+    MEASURE '_Measures'[Last Actual Date] =
+        EOMONTH ( CALCULATE ( MAX ( 'Fact Sales'[OrderDate] ), REMOVEFILTERS () ), 0 )
+    /// The as-of date for every (Month)/(QTD)/(YTD) measure: the end of the selected period, capped at the last closed month. With no date selection it is the last closed month.
+    MEASURE '_Measures'[Reporting Date] =
+        VAR _last = [Last Actual Date]
+        VAR _minCtx = MIN ( 'Date'[Date] )
+        VAR _maxCtx = MAX ( 'Date'[Date] )
+        RETURN
+            IF ( _minCtx <= _last, MIN ( _maxCtx, _last ) )
+    /// [Net Sales] for the reporting month.
+    MEASURE '_Measures'[Net Sales (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Net Sales] for the month before the reporting month.
+    MEASURE '_Measures'[Net Sales (Prior Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -2 ) + 1, EOMONTH ( _rd, -1 ) ) )
+            )
+    /// [Net Sales] for the same month last year.
+    MEASURE '_Measures'[Net Sales (PY Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Net Sales] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Net Sales (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Net Sales] for the equivalent quarter-to-date one quarter earlier.
+    MEASURE '_Measures'[Net Sales (Prior QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( EOMONTH ( _rd, -3 ) ), QUARTER ( EOMONTH ( _rd, -3 ) ) * 3 - 2, 1 ), EOMONTH ( _rd, -3 ) ) )
+            )
+    /// [Net Sales] for the same quarter-to-date last year.
+    MEASURE '_Measures'[Net Sales (PY QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, QUARTER ( _rd ) * 3 - 2, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Net Sales] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Net Sales (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Net Sales] for the same year-to-date period last year.
+    MEASURE '_Measures'[Net Sales (PY YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Net Sales] for the rolling 12 months ending with the reporting month.
+    MEASURE '_Measures'[Net Sales (R12M)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -12 ) + 1, _rd ) )
+            )
+    /// [Net Sales] for the rolling 12 months one year earlier.
+    MEASURE '_Measures'[Net Sales (PY R12M)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -24 ) + 1, EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Gross Margin] for the reporting month.
+    MEASURE '_Measures'[Gross Margin (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Gross Margin %] for the reporting month.
+    MEASURE '_Measures'[Gross Margin % (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Gross Margin] for the same month last year.
+    MEASURE '_Measures'[Gross Margin (PY Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Gross Margin %] for the same month last year.
+    MEASURE '_Measures'[Gross Margin % (PY Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -13 ) + 1, EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Gross Margin] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Gross Margin (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Gross Margin %] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Gross Margin % (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Gross Margin] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Gross Margin (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Gross Margin %] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Gross Margin % (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Gross Margin] for the same year-to-date period last year.
+    MEASURE '_Measures'[Gross Margin (PY YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Gross Margin %] for the same year-to-date period last year.
+    MEASURE '_Measures'[Gross Margin % (PY YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Gross Margin %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Units Sold] for the reporting month.
+    MEASURE '_Measures'[Units Sold (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Discount %] for the reporting month.
+    MEASURE '_Measures'[Discount % (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Units Sold] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Units Sold (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Discount %] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Discount % (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Units Sold] for the same year-to-date period last year.
+    MEASURE '_Measures'[Units Sold (PY YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Units Sold], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Discount %] for the same year-to-date period last year.
+    MEASURE '_Measures'[Discount % (PY YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Discount %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ) - 1, 1, 1 ), EOMONTH ( _rd, -12 ) ) )
+            )
+    /// [Forecast Net Sales (Closed)] for the reporting month.
+    MEASURE '_Measures'[Forecast Net Sales (Closed) (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Budget Net Sales (Closed)] for the reporting month.
+    MEASURE '_Measures'[Budget Net Sales (Closed) (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Var vs Forecast] for the reporting month.
+    MEASURE '_Measures'[Var vs Forecast (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Var % vs Forecast] for the reporting month.
+    MEASURE '_Measures'[Var % vs Forecast (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Var vs Budget] for the reporting month.
+    MEASURE '_Measures'[Var vs Budget (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Var % vs Budget] for the reporting month.
+    MEASURE '_Measures'[Var % vs Budget (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Forecast Accuracy %] for the reporting month.
+    MEASURE '_Measures'[Forecast Accuracy % (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Forecast Bias %] for the reporting month.
+    MEASURE '_Measures'[Forecast Bias % (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [GM % pts vs Budget] for the reporting month.
+    MEASURE '_Measures'[GM % pts vs Budget (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Forecast Net Sales (Closed)] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Net Sales (Closed) (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Budget Net Sales (Closed)] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Budget Net Sales (Closed) (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Var vs Forecast] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Var vs Forecast (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Var % vs Forecast] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Var % vs Forecast (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Var vs Budget] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Var vs Budget (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Var % vs Budget] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Var % vs Budget (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Forecast Accuracy %] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Accuracy % (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Forecast Bias %] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Bias % (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [GM % pts vs Budget] for quarter-to-date through the reporting month.
+    MEASURE '_Measures'[GM % pts vs Budget (QTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), QUARTER ( _rd ) * 3 - 2, 1 ), _rd ) )
+            )
+    /// [Forecast Net Sales (Closed)] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Net Sales (Closed) (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Budget Net Sales (Closed)] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Budget Net Sales (Closed) (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Budget Net Sales (Closed)], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Var vs Forecast] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Var vs Forecast (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Var % vs Forecast] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Var % vs Forecast (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Forecast], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Var vs Budget] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Var vs Budget (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Var % vs Budget] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Var % vs Budget (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Var % vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Forecast Accuracy %] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Accuracy % (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Accuracy %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Forecast Bias %] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Forecast Bias % (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Forecast Bias %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [GM % pts vs Budget] for year-to-date through the reporting month.
+    MEASURE '_Measures'[GM % pts vs Budget (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [GM % pts vs Budget], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Bridge Value] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Bridge Value (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Bridge Value], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Bridge Value] for the reporting month.
+    MEASURE '_Measures'[Bridge Value (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Bridge Value], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Active Customers] for the reporting month.
+    MEASURE '_Measures'[Active Customers (Month)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Active Customers], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -1 ) + 1, _rd ) )
+            )
+    /// [Active Customers] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Active Customers (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Active Customers], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// [Avg Order Value] for year-to-date through the reporting month.
+    MEASURE '_Measures'[Avg Order Value (YTD)] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Avg Order Value], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+            )
+    /// Month-over-month growth of net sales for the reporting month.
+    MEASURE '_Measures'[MoM %] =
+        VAR _cur = [Net Sales (Month)]
+        VAR _prev = [Net Sales (Prior Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Reporting month vs the same month last year.
+    MEASURE '_Measures'[YoY % (Month)] =
+        VAR _cur = [Net Sales (Month)]
+        VAR _prev = [Net Sales (PY Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Quarter-to-date vs the equivalent period of the prior quarter.
+    MEASURE '_Measures'[QoQ %] =
+        VAR _cur = [Net Sales (QTD)]
+        VAR _prev = [Net Sales (Prior QTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Quarter-to-date vs the same period last year.
+    MEASURE '_Measures'[YoY % (QTD)] =
+        VAR _cur = [Net Sales (QTD)]
+        VAR _prev = [Net Sales (PY QTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Year-to-date vs the same period last year.
+    MEASURE '_Measures'[YoY % (YTD)] =
+        VAR _cur = [Net Sales (YTD)]
+        VAR _prev = [Net Sales (PY YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Rolling 12 months vs the prior rolling 12 months.
+    MEASURE '_Measures'[YoY % (R12M)] =
+        VAR _cur = [Net Sales (R12M)]
+        VAR _prev = [Net Sales (PY R12M)]
+        RETURN
+            IF ( NOT ISBLANK ( _cur ), DIVIDE ( _cur - _prev, _prev ) )
+    /// Month-over-month change in net sales ($).
+    MEASURE '_Measures'[MoM Change] =
+        IF ( NOT ISBLANK ( [Net Sales (Month)] ), [Net Sales (Month)] - [Net Sales (Prior Month)] )
+    /// Year-to-date change vs last year ($).
+    MEASURE '_Measures'[YoY Change (YTD)] =
+        IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Net Sales (YTD)] - [Net Sales (PY YTD)] )
+    /// Change in YTD gross margin % vs last year (percentage points).
+    MEASURE '_Measures'[GM % pts vs PY (YTD)] =
+        IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Gross Margin % (YTD)] - [Gross Margin % (PY YTD)] )
+    /// Change in the reporting month's gross margin % vs the same month last year.
+    MEASURE '_Measures'[GM % pts vs PY (Month)] =
+        IF ( NOT ISBLANK ( [Net Sales (Month)] ), [Gross Margin % (Month)] - [Gross Margin % (PY Month)] )
+    /// Change in YTD discount depth vs last year (percentage points).
+    MEASURE '_Measures'[Discount % pts vs PY (YTD)] =
+        IF ( NOT ISBLANK ( [Net Sales (YTD)] ), [Discount % (YTD)] - [Discount % (PY YTD)] )
+
+    // ===== 06 Time Intelligence (context) =====
+    /// Net sales for the same period last year, for whatever dates are in context.
+    MEASURE '_Measures'[Net Sales PY] =
+        CALCULATE ( [Net Sales], SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+    /// Year-over-year growth for the dates in context.
+    MEASURE '_Measures'[YoY %] =
+        IF ( NOT ISBLANK ( [Net Sales] ), DIVIDE ( [Net Sales] - [Net Sales PY], [Net Sales PY] ) )
+    /// Previous month, quarter or year depending on the level shown in the visual.
+    MEASURE '_Measures'[Net Sales Prior Period] =
+        SWITCH (
+            TRUE (),
+            ISINSCOPE ( 'Date'[Month] ) || ISINSCOPE ( 'Date'[Month Year] ), CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, MONTH ) ),
+            ISINSCOPE ( 'Date'[Quarter] ) || ISINSCOPE ( 'Date'[Year Quarter] ), CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, QUARTER ) ),
+            CALCULATE ( [Net Sales], DATEADD ( 'Date'[Date], -1, YEAR ) )
+        )
+    /// Period-over-period growth: MoM at month level, QoQ at quarter level, YoY at year level.
+    MEASURE '_Measures'[PoP %] =
+        IF ( NOT ISBLANK ( [Net Sales] ), DIVIDE ( [Net Sales] - [Net Sales Prior Period], [Net Sales Prior Period] ) )
+    /// Cumulative year-to-date net sales along a date axis (stops at the last closed month).
+    MEASURE '_Measures'[Net Sales Running YTD] =
+        IF ( MIN ( 'Date'[Date] ) <= [Last Actual Date], CALCULATE ( [Net Sales], DATESYTD ( 'Date'[Date] ) ) )
+    /// Prior-year cumulative YTD along a date axis.
+    MEASURE '_Measures'[Net Sales Running YTD PY] =
+        CALCULATE ( CALCULATE ( [Net Sales], DATESYTD ( 'Date'[Date] ) ), SAMEPERIODLASTYEAR ( 'Date'[Date] ) )
+    /// Cumulative budget along a date axis (full year).
+    MEASURE '_Measures'[Budget Running YTD] =
+        CALCULATE ( [Budget Net Sales], DATESYTD ( 'Date'[Date] ) )
+    /// Cumulative forecast along a date axis (full year).
+    MEASURE '_Measures'[Forecast Running YTD] =
+        CALCULATE ( [Forecast Net Sales], DATESYTD ( 'Date'[Date] ) )
+    /// Three-month moving average of net sales.
+    MEASURE '_Measures'[Net Sales 3M Avg] =
+        VAR _end = MAX ( 'Date'[Date] )
+        RETURN
+            IF (
+                MIN ( 'Date'[Date] ) <= [Last Actual Date],
+                CALCULATE ( [Net Sales], DATESINPERIOD ( 'Date'[Date], _end, -3, MONTH ) ) / 3
+            )
+
+    // ===== 07 Outlook & KPIs =====
+    /// Latest estimate for the year: YTD actuals plus forecast for the remaining months.
+    MEASURE '_Measures'[Full Year Outlook] =
+        VAR _rd = [Reporting Date]
+        VAR _ytd = CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), _rd ) )
+        VAR _rest = CALCULATE ( [Forecast Net Sales], DATESBETWEEN ( 'Date'[Date], _rd + 1, DATE ( YEAR ( _rd ), 12, 31 ) ) )
+        RETURN
+            IF ( NOT ISBLANK ( _rd ), _ytd + _rest )
+    /// Full-year budget for the reporting year.
+    MEASURE '_Measures'[Full Year Budget] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Budget Net Sales], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( _rd ), 1, 1 ), DATE ( YEAR ( _rd ), 12, 31 ) ) )
+            )
+    /// Full-year outlook minus full-year budget.
+    MEASURE '_Measures'[Outlook vs Budget] =
+        [Full Year Outlook] - [Full Year Budget]
+    /// Full-year outlook vs budget, %.
+    MEASURE '_Measures'[Outlook vs Budget %] =
+        DIVIDE ( [Outlook vs Budget], [Full Year Budget] )
+    /// YTD actuals as a % of YTD budget.
+    MEASURE '_Measures'[Budget Attainment % (YTD)] =
+        DIVIDE ( [Net Sales (YTD)], [Budget Net Sales (Closed) (YTD)] )
+    /// Share of the full-year budget already delivered.
+    MEASURE '_Measures'[Full Year Budget Achieved %] =
+        DIVIDE ( [Net Sales (YTD)], [Full Year Budget] )
+    /// Last three closed months x 4.
+    MEASURE '_Measures'[Annualised Run Rate] =
+        VAR _rd = [Reporting Date]
+        RETURN
+            IF (
+                NOT ISBLANK ( _rd ),
+                CALCULATE ( [Net Sales], DATESBETWEEN ( 'Date'[Date], EOMONTH ( _rd, -3 ) + 1, _rd ) ) * 4
+            )
+    /// YTD net sales per active customer.
+    MEASURE '_Measures'[Revenue per Customer (YTD)] =
+        DIVIDE ( [Net Sales (YTD)], [Active Customers (YTD)] )
+
+    // ===== 08 Ranking & Mix =====
+    /// Rank of the product by YTD net sales within the current selection.
+    MEASURE '_Measures'[Product Rank (YTD)] =
+        IF ( ISINSCOPE ( 'Product'[Product] ), RANKX ( ALLSELECTED ( 'Product'[Product] ), [Net Sales (YTD)], , DESC, DENSE ) )
+    /// Rank of the customer by YTD net sales within the current selection.
+    MEASURE '_Measures'[Customer Rank (YTD)] =
+        IF ( ISINSCOPE ( 'Customer'[Customer] ), RANKX ( ALLSELECTED ( 'Customer'[Customer] ), [Net Sales (YTD)], , DESC, DENSE ) )
+    /// Product/brand/category share of YTD net sales within the current selection.
+    MEASURE '_Measures'[Share of Net Sales (YTD)] =
+        DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Product' ) ) )
+    /// Channel share of YTD net sales.
+    MEASURE '_Measures'[Channel Share (YTD)] =
+        DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Channel' ) ) )
+    /// Region share of YTD net sales.
+    MEASURE '_Measures'[Region Share (YTD)] =
+        DIVIDE ( [Net Sales (YTD)], CALCULATE ( [Net Sales (YTD)], ALLSELECTED ( 'Region' ) ) )
+
+    // ===== 09 Labels & Formatting =====
+    /// Static report title.
+    MEASURE '_Measures'[Report Title] =
+        "Month-End Financial Report"
+    /// Dynamic subtitle showing the period being reported.
+    MEASURE '_Measures'[Reporting Period Label] =
+        "Close period  ·  " & FORMAT ( [Reporting Date], "MMMM yyyy" )
+    /// Footer label with the actuals cut-off.
+    MEASURE '_Measures'[Data As Of Label] =
+        "Actuals through " & FORMAT ( [Last Actual Date], "d MMM yyyy" ) & "  ·  USD"
+    /// Subtitle for the monthly net sales KPI tile.
+    MEASURE '_Measures'[KPI Label Net Sales (Month)] =
+        VAR _vf = [Var % vs Forecast (Month)]
+        VAR _yoy = [YoY % (Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _vf ), IF ( _vf >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _vf ), "0.0%" ) & " vs Fcst    " & IF ( _yoy >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _yoy ), "0.0%" ) & " YoY" )
+    /// Subtitle for the gross margin % KPI tile.
+    MEASURE '_Measures'[KPI Label Gross Margin % (Month)] =
+        VAR _vb = [GM % pts vs Budget (Month)]
+        VAR _py = [GM % pts vs PY (Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _vb ), IF ( _vb * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _vb * 100 ), "0.0" ) & " pp vs Bud    " & IF ( _py * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _py * 100 ), "0.0" ) & " pp YoY" )
+    /// Subtitle for the YTD net sales KPI tile.
+    MEASURE '_Measures'[KPI Label Net Sales (YTD)] =
+        VAR _yoy = [YoY % (YTD)]
+        VAR _att = [Budget Attainment % (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _yoy ), IF ( _yoy >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _yoy ), "0.0%" ) & " YoY    " & FORMAT ( _att, "0.0%" ) & " of budget" )
+    /// Subtitle for the full-year outlook KPI tile.
+    MEASURE '_Measures'[KPI Label Outlook] =
+        VAR _v = [Outlook vs Budget %]
+        RETURN
+            IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " vs FY budget  (" & FORMAT ( [Full Year Budget], "$#,0.0,,") & "M)" )
+    /// Subtitle for the forecast accuracy KPI tile.
+    MEASURE '_Measures'[KPI Label Accuracy (Month)] =
+        VAR _a = [Forecast Accuracy % (Month)]
+        VAR _b = [Forecast Bias % (Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _a ), "Target " & FORMAT ( [Forecast Accuracy Target], "0%" ) & "    Bias " & FORMAT ( _b, "+0.0%;-0.0%" ) )
+    /// Subtitle for the monthly forecast variance tile.
+    MEASURE '_Measures'[KPI Label Var vs Forecast (Month)] =
+        VAR _v = [Var % vs Forecast (Month)]
+        RETURN
+            IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " of forecast  ·  " & FORMAT ( [Forecast Net Sales (Closed) (Month)], "$#,0.00,,") & "M fcst" )
+    /// Subtitle for the YTD budget variance tile.
+    MEASURE '_Measures'[KPI Label Var vs Budget (YTD)] =
+        VAR _v = [Var % vs Budget (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _v ), IF ( _v >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _v ), "0.0%" ) & " of budget  ·  " & FORMAT ( [Budget Net Sales (Closed) (YTD)], "$#,0.0,,") & "M bud" )
+    /// Subtitle for the YTD forecast accuracy tile.
+    MEASURE '_Measures'[KPI Label Accuracy (YTD)] =
+        VAR _a = [Forecast Accuracy % (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _a ), "MAPE (SKU) " & FORMAT ( CALCULATE ( [MAPE %], DATESBETWEEN ( 'Date'[Date], DATE ( YEAR ( [Reporting Date] ), 1, 1 ), [Reporting Date] ) ), "0.0%" ) & "    Target " & FORMAT ( [Forecast Accuracy Target], "0%" ) )
+    /// Subtitle for the forecast bias tile.
+    MEASURE '_Measures'[KPI Label Bias (YTD)] =
+        VAR _b = [Forecast Bias % (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _b ), IF ( _b > 0.005, "Over-forecasting", IF ( _b < -0.005, "Under-forecasting", "Unbiased" ) ) & "  ·  ±0.5% tolerance" )
+    /// Subtitle for the QTD tile.
+    MEASURE '_Measures'[KPI Label QTD] =
+        VAR _q = [QoQ %]
+        VAR _y = [YoY % (QTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _q ), IF ( _q >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _q ), "0.0%" ) & " QoQ    " & IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " YoY" )
+    /// Subtitle for the YTD vs PY tile.
+    MEASURE '_Measures'[KPI Label YTD YoY] =
+        VAR _y = [YoY % (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _y ), IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " vs PY  (" & FORMAT ( [YoY Change (YTD)], "+$#,0.0,,;-$#,0.0,,") & "M)" )
+    /// Subtitle for the rolling 12M tile.
+    MEASURE '_Measures'[KPI Label R12M] =
+        VAR _y = [YoY % (R12M)]
+        RETURN
+            IF ( NOT ISBLANK ( _y ), IF ( _y >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _y ), "0.0%" ) & " vs prior 12M  ·  run rate " & FORMAT ( [Annualised Run Rate], "$#,0.0,,") & "M" )
+    /// Subtitle for the YTD gross margin % tile.
+    MEASURE '_Measures'[KPI Label GM % (YTD)] =
+        VAR _p = [GM % pts vs PY (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _p ), IF ( _p * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _p * 100 ), "0.0" ) & " pp vs PY  ·  GM " & FORMAT ( [Gross Margin (YTD)], "$#,0.0,,") & "M" )
+    /// Subtitle for the YTD discount % tile.
+    MEASURE '_Measures'[KPI Label Discount % (YTD)] =
+        VAR _p = [Discount % pts vs PY (YTD)]
+        RETURN
+            IF ( NOT ISBLANK ( _p ), IF ( _p * 100 >= 0, "▲ ", "▼ " ) & FORMAT ( ABS ( _p * 100 ), "0.0" ) & " pp vs PY  ·  " & FORMAT ( [Discounts], "$#,0.0,,") & "M all-time" )
+    /// Hex colour for conditional formatting driven by [Var % vs Forecast]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Forecast] =
+        VAR _v = [Var % vs Forecast]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Var % vs Budget]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Budget] =
+        VAR _v = [Var % vs Budget]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Var % vs Forecast (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Forecast (Month)] =
+        VAR _v = [Var % vs Forecast (Month)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Var % vs Budget (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Budget (YTD)] =
+        VAR _v = [Var % vs Budget (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [YoY % (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color YoY % (Month)] =
+        VAR _v = [YoY % (Month)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [YoY % (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color YoY % (YTD)] =
+        VAR _v = [YoY % (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [YoY %]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color YoY %] =
+        VAR _v = [YoY %]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [PoP %]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color PoP %] =
+        VAR _v = [PoP %]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [GM % pts vs Budget (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color GM pts vs Budget (Month)] =
+        VAR _v = [GM % pts vs Budget (Month)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [GM % pts vs PY (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color GM pts vs PY (YTD)] =
+        VAR _v = [GM % pts vs PY (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for discount depth change: deeper discounts (positive) are unfavourable.
+    MEASURE '_Measures'[Color Discount pts vs PY (YTD)] =
+        VAR _v = [Discount % pts vs PY (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#D03B3B",
+                _v <= -0.005, "#006300",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Outlook vs Budget %]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Outlook vs Budget] =
+        VAR _v = [Outlook vs Budget %]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [QoQ %]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color QoQ %] =
+        VAR _v = [QoQ %]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [YoY % (R12M)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color YoY % (R12M)] =
+        VAR _v = [YoY % (R12M)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+
+    // ===== 04 Forecast Accuracy =====
+    /// Reporting-month forecast accuracy minus target.
+    MEASURE '_Measures'[Accuracy vs Target (Month)] =
+        IF ( NOT ISBLANK ( [Forecast Accuracy % (Month)] ), [Forecast Accuracy % (Month)] - [Forecast Accuracy Target] )
+    /// YTD forecast accuracy minus target.
+    MEASURE '_Measures'[Accuracy vs Target (YTD)] =
+        IF ( NOT ISBLANK ( [Forecast Accuracy % (YTD)] ), [Forecast Accuracy % (YTD)] - [Forecast Accuracy Target] )
+
+    // ===== 09 Labels & Formatting =====
+    /// Hex colour for conditional formatting driven by [Accuracy vs Target (YTD)]: green favourable, red unfavourable, grey within ±0.0%.
+    MEASURE '_Measures'[Color Accuracy vs Target (YTD)] =
+        VAR _v = [Accuracy vs Target (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.0001, "#006300",
+                _v <= -0.0001, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Accuracy vs Target (Month)]: green favourable, red unfavourable, grey within ±0.0%.
+    MEASURE '_Measures'[Color Accuracy vs Target (Month)] =
+        VAR _v = [Accuracy vs Target (Month)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.0001, "#006300",
+                _v <= -0.0001, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Var % vs Budget (Month)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Budget (Month)] =
+        VAR _v = [Var % vs Budget (Month)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Hex colour for conditional formatting driven by [Var % vs Forecast (YTD)]: green favourable, red unfavourable, grey within ±0.5%.
+    MEASURE '_Measures'[Color Var % vs Forecast (YTD)] =
+        VAR _v = [Var % vs Forecast (YTD)]
+        RETURN
+            SWITCH (
+                TRUE (),
+                ISBLANK ( _v ), "#898781",
+                _v >= 0.005, "#006300",
+                _v <= -0.005, "#D03B3B",
+                "#52514E"
+            )
+    /// Green when forecast bias is within ±0.5%.
+    MEASURE '_Measures'[Color Bias (YTD)] =
+        VAR _b = [Forecast Bias % (YTD)]
+        RETURN
+            IF ( ABS ( _b ) <= 0.005, "#006300", "#52514E" )
+    /// Bar fill colour for forecast variance: green favourable, red unfavourable.
+    MEASURE '_Measures'[Fill Var vs Forecast] =
+        VAR _v = [Var vs Forecast]
+        RETURN
+            IF ( ISBLANK ( _v ), BLANK (), IF ( _v >= 0, "#0CA30C", "#D03B3B" ) )
+    /// Bar fill colour for the reporting month's forecast variance.
+    MEASURE '_Measures'[Fill Var vs Forecast (Month)] =
+        VAR _v = [Var vs Forecast (Month)]
+        RETURN
+            IF ( ISBLANK ( _v ), BLANK (), IF ( _v >= 0, "#0CA30C", "#D03B3B" ) )
+    /// Column fill for forecast accuracy: blue at/above target, orange below.
+    MEASURE '_Measures'[Fill Accuracy] =
+        VAR _a = [Forecast Accuracy %]
+        RETURN
+            IF ( ISBLANK ( _a ), BLANK (), IF ( _a >= [Forecast Accuracy Target], "#2A78D6", "#EB6834" ) )
+
+EVALUATE
+    ROW (
+        "Net Sales (Month)", [Net Sales (Month)],
+        "Var % vs Forecast (Month)", [Var % vs Forecast (Month)],
+        "Net Sales (YTD)", [Net Sales (YTD)],
+        "YoY % (YTD)", [YoY % (YTD)],
+        "Forecast Accuracy % (YTD)", [Forecast Accuracy % (YTD)]
+    )

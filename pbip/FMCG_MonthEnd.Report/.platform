@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "FMCG_MonthEnd"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "4df01faa-2c76-57e1-be2e-48f00dac9b14"
+  }
+}

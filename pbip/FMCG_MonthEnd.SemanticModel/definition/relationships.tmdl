@@ -1,0 +1,36 @@
+relationship 08b47ef5-d6d9-507b-9cfa-97d028aff082
+	fromColumn: 'Fact Sales'.OrderDate
+	toColumn: 'Date'.'Date'
+
+relationship b9db47d7-41eb-5f9a-be03-4a808bd33f7d
+	fromColumn: 'Fact Sales'.ProductKey
+	toColumn: Product.ProductKey
+
+relationship f33ae3f8-b3d2-5e66-b1a1-e8441d573300
+	fromColumn: 'Fact Sales'.CustomerKey
+	toColumn: Customer.CustomerKey
+
+relationship 82a84146-e48c-55e3-95e8-e6abfe32c9aa
+	fromColumn: 'Fact Sales'.RegionKey
+	toColumn: Region.RegionKey
+
+relationship b44ddab8-0134-58bb-be22-7f25c44e5e3d
+	fromColumn: 'Fact Sales'.ChannelKey
+	toColumn: Channel.ChannelKey
+
+relationship 96b1bd53-fc36-5df7-93b8-dde84b82954e
+	fromColumn: 'Fact Forecast'.MonthStartDate
+	toColumn: 'Date'.'Date'
+
+relationship a819a23d-4d68-5b92-ab04-1d6d8b85d760
+	fromColumn: 'Fact Forecast'.ProductKey
+	toColumn: Product.ProductKey
+
+relationship a657cdb6-e397-5acd-a018-2bab51477262
+	fromColumn: 'Fact Forecast'.RegionKey
+	toColumn: Region.RegionKey
+
+relationship 9f5e82af-e6b1-55c5-97b3-72b9a4545e05
+	fromColumn: 'Fact Forecast'.ChannelKey
+	toColumn: Channel.ChannelKey
+

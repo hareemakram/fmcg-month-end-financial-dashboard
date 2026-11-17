@@ -1,0 +1,43 @@
+table Region
+	lineageTag: d7d275c7-4d95-5cea-94af-277bc63fe3e0
+
+	column RegionKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: d72379e1-534f-5cb7-8efe-aa38bd11bd49
+		summarizeBy: none
+		sourceColumn: RegionKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 96b02e3e-91d8-5305-a63f-78e68f064dc2
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Regional Director'
+		dataType: string
+		lineageTag: 5ffa6236-94dc-56ca-8f0f-2bf3877c79c3
+		summarizeBy: none
+		sourceColumn: Regional Director
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Region = m
+		mode: import
+		queryGroup: Dimensions
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "dim_region.csv"), [Delimiter = ",", Columns = 3, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    PromotedHeaders = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    ChangedType = Table.TransformColumnTypes(PromotedHeaders, {
+				        {"RegionKey", Int64.Type}, {"Region", type text}, {"RegionalDirector", type text}}, "en-US"),
+				    Renamed = Table.RenameColumns(ChangedType, {{"RegionalDirector", "Regional Director"}})
+				in
+				    Renamed
+
+	annotation PBI_ResultType = Table

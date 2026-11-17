@@ -1,0 +1,10 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+  "pageOrder": [
+    "p01_ExecutiveSummary",
+    "p02_VarianceAnalysis",
+    "p03_PeriodKPIs",
+    "p04_ProductRegion"
+  ],
+  "activePageName": "p01_ExecutiveSummary"
+}
